@@ -11,19 +11,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install build tools
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install twine
+          pip install build twine
+
+      - name: Clean previous builds
+        run: rm -rf dist/
 
       - name: Build package
         run: python -m build
@@ -48,7 +52,7 @@ jobs:
       url: https://pypi.org/p/ginx
 
     permissions:
-      id-token: write
+      id-token: write # Required for PyPI trusted publishing
 
     steps:
       - name: Download build artifacts
@@ -57,12 +61,11 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI via OIDC
         run: |
-          python -m twine upload --repository pypi dist/*
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          python -m pip install --upgrade pip
+          pip install twine
+          python -m twine upload dist/
 
   create-github-release:
     needs: publish-pypi
@@ -78,7 +81,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name  }}
+          release_name: Release ${{ github.ref_name }}
           body: |
             ## Changes in ${{ github.ref_name }}
 
