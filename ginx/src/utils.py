@@ -189,7 +189,7 @@ def run_command_with_streaming(
             process.terminate()
         return 130
     except Exception as e:
-        typer.secho(f"Error running command: {e}", fg=typer.colors.RED)
+        typer.secho(f"✗ Error running command: {e}", fg=typer.colors.RED)
         return 1
 
 
@@ -538,7 +538,7 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
 
     if placeholders and not extra_input:
         typer.secho(
-            "Error: Command requires extra input but none provided", fg=typer.colors.RED
+            "✗ Error: Command requires extra input but none provided", fg=typer.colors.RED
         )
         raise typer.Exit(code=1)
 
@@ -562,7 +562,7 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
                 replacement = extra_input.strip()
             except ValueError:
                 typer.secho(
-                    f"Error: Expected number but got '{extra_input}'",
+                    f"✗ Error: Expected number but got '{extra_input}'",
                     fg=typer.colors.RED,
                 )
                 raise typer.Exit(code=1)
@@ -573,12 +573,12 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
                 args = shlex.split(extra_input)
                 replacement = " ".join(shlex.quote(arg) for arg in args)
             except ValueError as e:
-                typer.secho(f"Error parsing arguments: {e}", fg=typer.colors.RED)
+                typer.secho(f"✗ Error parsing arguments: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
 
         else:
             typer.secho(
-                f"Error: Unknown placeholder type EXTRA_{placeholder_type}",
+                f"✗ Error: Unknown placeholder type EXTRA_{placeholder_type}",
                 fg=typer.colors.RED,
             )
             raise typer.Exit(code=1)
@@ -612,7 +612,7 @@ def parse_command_and_extra(
                 command_display = " ".join(full_command)
             except ValueError as e:
                 typer.secho(
-                    f"Error parsing processed command: {e}", fg=typer.colors.RED
+                    f"✗ Error parsing processed command: {e}", fg=typer.colors.RED
                 )
                 raise typer.Exit(code=1)
     else:
@@ -626,7 +626,7 @@ def parse_command_and_extra(
                 command_display = " ".join(command)
 
             except ValueError as e:
-                typer.secho(f"Error parsing command: {e}", fg=typer.colors.RED)
+                typer.secho(f"✗ Error parsing command: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
 
     return full_command, command_display
