@@ -54,11 +54,11 @@ scripts:
   # GIT WORKFLOW
   # ===============================================
 
-  add-all:
+  ga:
     command: "git add ."
     description: "Stage all changes"
 
-  commit:
+  gc:
     command: "git commit -m EXTRA_STRING"
     description: "Commit with updates message"
 
@@ -66,7 +66,11 @@ scripts:
     command: "git push -u origin main"
     description: "Push to main"
 
-  pull:
+  gt:
+    command: "git tag -a EXTRA_RAW"
+    description: "Create a new git tag for the release"
+
+  gp:
     command: "git pull origin main"
     description: "Pull latest changes"
 
