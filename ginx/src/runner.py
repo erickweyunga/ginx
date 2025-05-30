@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 
 import typer
 
+from ginx.src.cmd import COMMANDS
 from ginx.src.constants import COMMON_DEV_PACKAGES, DEFAULT_REQUIREMENTS_FILES
 from ginx.src.loader import create_sample_config, get_global_config, get_scripts
 from ginx.src.plugins import get_plugin_manager
@@ -22,6 +23,7 @@ from ginx.src.utils import (
     extract_commands_from_shell_string,
     find_requirements_files,
     format_duration,
+    parse_command_and_extra,
     parse_requirements_file,
     run_command_with_streaming,
     run_command_with_streaming_shell,
@@ -83,16 +85,7 @@ def create_script_command(script_name: str, script_config: Dict[str, Any]):
 def register_script_commands():
     try:
         scripts = get_scripts()
-        existing_commands = {
-            "version",
-            "list",
-            "run",
-            "init",
-            "validate",
-            "deps",
-            "install-deps",
-        }
-
+        existing_commands = COMMANDS
         for script_name, script_config in scripts.items():
             if script_name not in existing_commands:
                 script_command = create_script_command(script_name, script_config)
@@ -116,19 +109,7 @@ def main(ctx: typer.Context):
         ginx commit "fix: bug"   # Run commit script with extra args
     """
     if ctx.invoked_subcommand is None:
-        # Show help with available scripts
         typer.echo(ctx.get_help())
-
-        # Also show available scripts
-        try:
-            scripts = get_scripts()
-            if scripts:
-                typer.echo("\nAvailable scripts:")
-                for name in sorted(scripts.keys()):
-                    description = scripts[name].get("description", "No description")
-                    typer.echo(f"  {name:<15} {description}")
-        except Exception:
-            pass
 
         raise typer.Exit()
 
@@ -227,19 +208,9 @@ def execute_script_logic(
                 needs_shell = True
 
     # Parse command and add extra arguments
-    if needs_shell:
-        # For shell commands, combine as string
-        full_command = command_str + (" " + extra if extra else "")
-        command_display = full_command
-    else:
-        # For simple commands, use shlex splitting
-        try:
-            command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
-            full_command = command
-            command_display = " ".join(command)
-        except ValueError as e:
-            typer.secho(f"Error parsing command: {e}", fg=typer.colors.RED)
-            raise typer.Exit(code=1)
+    full_command, command_display = parse_command_and_extra(
+        command_str, extra, needs_shell=True
+    )
 
     if verbose:
         typer.secho(f"Script: {script_name}", fg=typer.colors.BLUE)

@@ -59,10 +59,8 @@ scripts:
     description: "Stage all changes"
 
   commit:
-    command: "git commit -m '$COMMIT_MSG'"
+    command: "git commit -m EXTRA_STRING"
     description: "Commit with updates message"
-    env:
-      COMMIT_MSG: "[GINX] Updates"
 
   push:
     command: "git push -u origin main"

@@ -4,6 +4,7 @@ Utility functions for Ginx CLI tool.
 
 import os
 import platform
+import re
 import shlex
 import subprocess
 import sys
@@ -512,3 +513,120 @@ def parse_requirements_file(file_path: str) -> List[str]:
             f"Warning: Could not parse {file_path}: {e}", fg=typer.colors.YELLOW
         )
     return packages
+
+
+def parse_command_with_extras(command_template: str, extra_input: str = "") -> str:
+    """
+    Parse command template with EXTRA_[DATATYPE] placeholders
+
+    Supported placeholders:
+    - EXTRA_STRING: Quoted string argument
+    - EXTRA_RAW: Raw unquoted argument
+    - EXTRA_NUMBER: Numeric argument
+    - EXTRA_ARGS: Multiple arguments (split by spaces)
+    """
+
+    extra_pattern: str = r"EXTRA_([A-Z_]+)"
+    placeholders = re.findall(extra_pattern, command_template)
+
+    if not placeholders and extra_input:
+        typer.secho(
+            "Warning: Extra input provided but no EXTRA_ placeholder found",
+            fg=typer.colors.YELLOW,
+        )
+        return command_template
+
+    if placeholders and not extra_input:
+        typer.secho(
+            "Error: Command requires extra input but none provided", fg=typer.colors.RED
+        )
+        raise typer.Exit(code=1)
+
+    processed_command: str = command_template
+
+    for placeholder_type in placeholders:
+        placeholder = f"EXTRA_{placeholder_type}"
+
+        if placeholder_type == "STRING":
+            # Handle as quoted string - preserve as single argument
+            replacement = shlex.quote(extra_input.strip())
+
+        elif placeholder_type == "RAW":
+            # Handle as raw input - no quoting
+            replacement = extra_input.strip()
+
+        elif placeholder_type == "NUMBER":
+            # Validate as number
+            try:
+                float(extra_input.strip())
+                replacement = extra_input.strip()
+            except ValueError:
+                typer.secho(
+                    f"Error: Expected number but got '{extra_input}'",
+                    fg=typer.colors.RED,
+                )
+                raise typer.Exit(code=1)
+
+        elif placeholder_type == "ARGS":
+            # Split into multiple arguments
+            try:
+                args = shlex.split(extra_input)
+                replacement = " ".join(shlex.quote(arg) for arg in args)
+            except ValueError as e:
+                typer.secho(f"Error parsing arguments: {e}", fg=typer.colors.RED)
+                raise typer.Exit(code=1)
+
+        else:
+            typer.secho(
+                f"Error: Unknown placeholder type EXTRA_{placeholder_type}",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(code=1)
+
+        processed_command = processed_command.replace(placeholder, replacement)
+
+    return processed_command
+
+
+def parse_command_and_extra(
+    command_str: str, extra: Optional[str] = None, needs_shell: bool = False
+):
+    """Parse command with optional EXTRA_ placeholder support"""
+
+    if "EXTRA_" in command_str:
+        # Process template with extra input
+        try:
+            processed_command_str = parse_command_with_extras(
+                command_str, str(extra) if extra else ""
+            )
+        except typer.Exit:
+            raise
+
+        # Parse the processed command
+        if needs_shell:
+            full_command = processed_command_str
+            command_display = processed_command_str
+        else:
+            try:
+                full_command = shlex.split(processed_command_str)
+                command_display = " ".join(full_command)
+            except ValueError as e:
+                typer.secho(
+                    f"Error parsing processed command: {e}", fg=typer.colors.RED
+                )
+                raise typer.Exit(code=1)
+    else:
+        if needs_shell:
+            full_command = command_str + (" " + extra if extra else "")
+            command_display = full_command
+        else:
+            try:
+                command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
+                full_command = command
+                command_display = " ".join(command)
+
+            except ValueError as e:
+                typer.secho(f"Error parsing command: {e}", fg=typer.colors.RED)
+                raise typer.Exit(code=1)
+
+    return full_command, command_display
