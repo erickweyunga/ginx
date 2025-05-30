@@ -395,19 +395,9 @@ def run_script(
                 needs_shell = True
 
     # Parse command and add extra arguments
-    if needs_shell:
-        # For shell commands, combine as string
-        full_command = command_str + (" " + extra if extra else "")
-        command_display = full_command
-    else:
-        # For simple commands, use shlex splitting
-        try:
-            command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
-            full_command = command
-            command_display = " ".join(command)
-        except ValueError as e:
-            typer.secho(f"Error parsing command: {e}", fg=typer.colors.RED)
-            raise typer.Exit(code=1)
+    full_command, command_display = parse_command_and_extra(
+        command_str, extra, needs_shell=True
+    )
 
     if verbose:
         typer.secho(f"Script: {script_name}", fg=typer.colors.BLUE)
