@@ -12,11 +12,11 @@ from typing import Any, Dict, List
 
 import typer
 
-from ginx.src.cmd import COMMANDS
-from ginx.src.constants import COMMON_DEV_PACKAGES, DEFAULT_REQUIREMENTS_FILES
-from ginx.src.loader import create_sample_config, get_global_config, get_scripts
-from ginx.src.plugins import get_plugin_manager
-from ginx.src.utils import (
+from ginx.cmd import COMMANDS
+from ginx.constants import COMMON_DEV_PACKAGES, DEFAULT_REQUIREMENTS_FILES
+from ginx.loader import create_sample_config, get_global_config, get_scripts
+from ginx.plugins import get_plugin_manager
+from ginx.utils import (
     check_dependencies,
     detect_virtual_environment,
     expand_variables,
@@ -43,7 +43,7 @@ plugin_manager = get_plugin_manager()
 
 # Auto Register built-in plugins
 try:
-    from ginx.src.plugins import auto_register_builtin_plugins
+    from ginx.plugins import auto_register_builtin_plugins
 
     auto_register_builtin_plugins()
 except Exception:
@@ -118,7 +118,7 @@ def main(ctx: typer.Context):
 def show_version():
     """Show the current version of Ginx."""
     try:
-        from ginx.src import __version__
+        from ginx import __version__
 
         typer.echo(f"Ginx version {__version__}")
     except ImportError:

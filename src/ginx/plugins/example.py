@@ -2,7 +2,7 @@ from typing import List
 
 import typer
 
-from ginx.src.plugins import GinxPlugin, get_plugin_manager
+from ginx.plugins import GinxPlugin, get_plugin_manager
 
 
 class ExamplePlugin(GinxPlugin):

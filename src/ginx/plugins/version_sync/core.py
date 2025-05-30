@@ -4,7 +4,7 @@ Core plugin class for version synchronization.
 
 import typer
 
-from ginx.src.plugins import GinxPlugin
+from ginx.plugins import GinxPlugin
 
 from .commands import (
     CheckUpdatesCommand,

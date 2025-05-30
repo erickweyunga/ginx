@@ -264,7 +264,7 @@ src/plugins/
 Plugins inherit from `GinxPlugin` base class:
 
 ```python
-from ginx.src.plugins import GinxPlugin
+from ginx.plugins import GinxPlugin
 import typer
 
 class MyPlugin(GinxPlugin):

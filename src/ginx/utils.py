@@ -13,12 +13,12 @@ from typing import Any, Dict, List, Optional
 
 import typer
 
-from ginx.src.constants import (
+from ginx.constants import (
     COMMON_PROJECT_ROOT_MARKERS,
     DANGEROUS_PATTERNS,
     DEFAULT_REQUIREMENTS_FILES,
 )
-from ginx.src.loader import get_global_config
+from ginx.loader import get_global_config
 
 
 def get_shell() -> str:

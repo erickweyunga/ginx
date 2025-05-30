@@ -50,11 +50,11 @@ Repository = "https://github.com/erickweyunga/ginx.git"
 Changelog = "https://github.com/erickweyunga/ginx/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ginx = "ginx.src.runner:app"
+ginx = "ginx.runner:app"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["ginx*"]
+where = ["src"]
+include = ["ginx"]
 
 [tool.setuptools.package-data]
 ginx = ["py.typed"]

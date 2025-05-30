@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
-from ginx.src.utils import parse_requirements_file
+from ginx.utils import parse_requirements_file
 
 from .version_utils import normalize_package_name, parse_package_line
 
