@@ -67,7 +67,7 @@ scripts:
     description: "Push to main"
 
   gt:
-    command: "git tag -a EXTRA_RAW"
+    command: "git tag -a EXTRA_RAW -m 'release'"
     description: "Create a new git tag for the release"
 
   gp:
