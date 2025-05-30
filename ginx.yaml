@@ -73,6 +73,10 @@ scripts:
   gp:
     command: "git pull origin main"
     description: "Pull latest changes"
+  
+  gr:
+    command: "git push origin main --tags"
+    description: "Full release workflow"
 
   # ===============================================
   # MAINTENANCE
