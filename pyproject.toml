@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 77.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "ginx"
 version = "0.1.0"
 description = "A command-line script runner powered by YAML configuration"
 readme = "README.md"
-license = { text = "MIT" }
+license = { text = "LICENSE" }
 authors = [{ name = "Eric Kweyunga", email = "maverickweyunga@gmail.com" }]
 maintainers = [{ name = "Eric Kweyunga", email = "maverickweyunga@gmail.com" }]
 keywords = ["cli", "automation", "scripts", "yaml", "runner", "task"]
@@ -38,7 +38,7 @@ dev = [
     "isort>=5.12.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
+    "pre-commit>=3.0.0"
 ]
 test = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "pytest-mock>=3.10.0"]
 
@@ -59,14 +59,12 @@ include = ["ginx"]
 [tool.setuptools.package-data]
 ginx = ["py.typed"]
 
-# Black configuration
 [tool.black]
 line-length = 88
 target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
   \.eggs
   | \.git
   | \.hg
@@ -78,7 +76,6 @@ extend-exclude = '''
 )/
 '''
 
-# isort configuration
 [tool.isort]
 profile = "black"
 multi_line_output = 3
@@ -105,7 +102,6 @@ show_error_codes = true
 module = ["yaml.*"]
 ignore_missing_imports = true
 
-# Coverage configuration
 [tool.coverage.run]
 source = ["ginx"]
 omit = ["*/tests/*", "*/test_*", "*/__pycache__/*"]
