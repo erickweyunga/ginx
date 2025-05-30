@@ -7,7 +7,7 @@ using YAML configuration files.
 
 __version__ = "0.1.0"
 __author__ = "Ginx Contributors"
-__email__ = "your.email@example.com"
+__email__ = "maverickweyunga@gmail.com"
 __description__ = "A command-line script runner powered by YAML configuration"
 
 from .loader import create_sample_config, find_config_file, load_scripts
