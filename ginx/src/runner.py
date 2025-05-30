@@ -60,15 +60,76 @@ except Exception:
     pass
 
 
+def create_script_command(script_name: str, script_config: Dict[str, Any]):
+    def script_command(
+        extra: str = typer.Argument("", help="Extra CLI arguments"),
+        streaming: bool = typer.Option(
+            True, "--stream/--no-stream", help="Stream output"
+        ),
+        dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Dry run"),
+        verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    ):
+        return execute_script_logic(
+            script_name, script_config, extra, streaming, dry_run, verbose
+        )
+
+    script_command.__name__ = f"script_{script_name}"
+    script_command.__doc__ = script_config.get(
+        "description", f"Run {script_name} script"
+    )
+    return script_command
+
+
+def register_script_commands():
+    try:
+        scripts = get_scripts()
+        existing_commands = {
+            "version",
+            "list",
+            "run",
+            "init",
+            "validate",
+            "deps",
+            "install-deps",
+        }
+
+        for script_name, script_config in scripts.items():
+            if script_name not in existing_commands:
+                script_command = create_script_command(script_name, script_config)
+                app.command(script_name, help=script_config.get("description"))(
+                    script_command
+                )
+    except Exception as e:
+        typer.echo(f"Warning: Could not load scripts: {e}")
+
+
 @app.callback()
 def main(ctx: typer.Context):
     """
     Ginx is a command-line script runner powered by YAML configuration.
 
-    Define your scripts in a YAML file and run them by name.
+    Define your scripts in a YAML file and run them directly by name.
+
+    Examples:
+        ginx format              # Run the format script
+        ginx build --verbose     # Run build script with verbose output
+        ginx commit "fix: bug"   # Run commit script with extra args
     """
     if ctx.invoked_subcommand is None:
+        # Show help with available scripts
         typer.echo(ctx.get_help())
+
+        # Also show available scripts
+        try:
+            scripts = get_scripts()
+            if scripts:
+                typer.echo("\nAvailable scripts:")
+                for name in sorted(scripts.keys()):
+                    description = scripts[name].get("description", "No description")
+                    typer.echo(f"  {name:<15} {description}")
+        except Exception:
+            pass
+
         raise typer.Exit()
 
 
@@ -102,6 +163,197 @@ def list_scripts():
         typer.echo(f"    Description: {description}")
         typer.echo(f"    Command: {command}")
         typer.echo()
+
+
+def execute_script_logic(
+    script_name: str,
+    script_config: Dict[str, Any],
+    extra: str,
+    streaming: bool,
+    dry_run: bool,
+    verbose: bool,
+):
+    """
+    Runs a script defined in the YAML file.
+
+    \b
+    Example:
+        ginx build
+        ginx deploy "--force --region us-west"
+        ginx test --stream --verbose
+    """
+    scripts = get_scripts()
+    if script_name not in scripts:
+        typer.secho(f"Script '{script_name}' not found.", fg=typer.colors.RED)
+        typer.echo("\nAvailable scripts:")
+        for name in scripts.keys():
+            typer.echo(f"  - {name}")
+        raise typer.Exit(code=1)
+
+    script = scripts[script_name]
+    command_str = script["command"]
+
+    # Expand environment variables
+    script_env = script.get("env", {})
+    command_str = expand_variables(command_str, script_env)
+
+    # Validate command
+    if not validate_command(command_str):
+        typer.secho("Command validation failed. Aborting.", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    # Check if command contains shell operators or builtins
+    shell_operators = ["&&", "||", ";", "|", ">", "<", "&", "$(", "`"]
+    shell_builtins = [
+        "cd",
+        "export",
+        "set",
+        "unset",
+        "alias",
+        "source",
+        ".",
+        "eval",
+        "exec",
+    ]
+
+    needs_shell = any(op in command_str for op in shell_operators)
+
+    if not needs_shell:
+        # Check for shell builtins in the command
+        command = extract_commands_from_shell_string(command_str)
+        for cmd in command:
+            # Check if command is a shell builtin
+            if cmd in shell_builtins:
+                needs_shell = True
+
+    # Parse command and add extra arguments
+    if needs_shell:
+        # For shell commands, combine as string
+        full_command = command_str + (" " + extra if extra else "")
+        command_display = full_command
+    else:
+        # For simple commands, use shlex splitting
+        try:
+            command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
+            full_command = command
+            command_display = " ".join(command)
+        except ValueError as e:
+            typer.secho(f"Error parsing command: {e}", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+
+    if verbose:
+        typer.secho(f"Script: {script_name}", fg=typer.colors.BLUE)
+        typer.secho(
+            f"Description: {script.get('description', 'N/A')}", fg=typer.colors.BLUE
+        )
+        typer.secho(
+            f"Working directory: {script.get('cwd', 'current')}", fg=typer.colors.BLUE
+        )
+        typer.secho(
+            f"Shell mode: {'Yes' if needs_shell else 'No'}", fg=typer.colors.BLUE
+        )
+
+    typer.secho(f"Running: {command_display}", fg=typer.colors.CYAN)
+
+    if dry_run:
+        typer.secho("Dry run - command not executed", fg=typer.colors.YELLOW)
+        return
+
+    start_time = time.time()
+
+    try:
+        if streaming:
+            # Use streaming output
+            if needs_shell:
+                exit_code = run_command_with_streaming_shell(
+                    (
+                        str(full_command)
+                        if isinstance(full_command, list)
+                        else full_command
+                    ),
+                    cwd=script.get("cwd"),
+                    env=script.get("env"),
+                )
+            else:
+                exit_code = run_command_with_streaming(
+                    (
+                        full_command
+                        if isinstance(full_command, list)
+                        else shlex.split(full_command)
+                    ),
+                    cwd=script.get("cwd"),
+                    env=script.get("env"),
+                )
+
+            if exit_code == 0:
+                duration = time.time() - start_time
+                typer.secho(
+                    f"\n✓ Script completed successfully in {format_duration(duration)}",
+                    fg=typer.colors.GREEN,
+                )
+            else:
+                typer.secho(
+                    f"\n✗ Script failed with exit code {exit_code}", fg=typer.colors.RED
+                )
+                raise typer.Exit(code=exit_code)
+        else:
+            # Capture output
+            if needs_shell:
+                result = subprocess.run(
+                    full_command,
+                    shell=True,
+                    check=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    capture_output=not streaming,
+                    cwd=script.get("cwd"),
+                    env=script.get("env"),
+                )
+            else:
+                result = subprocess.run(
+                    full_command,
+                    check=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    capture_output=not streaming,
+                    cwd=script.get("cwd"),
+                    env=script.get("env"),
+                )
+
+            duration = time.time() - start_time
+
+            if result.stdout and not streaming:
+                typer.echo(result.stdout)
+
+            typer.secho(
+                f"✓ Script completed successfully in {format_duration(duration)}",
+                fg=typer.colors.GREEN,
+            )
+
+    except subprocess.CalledProcessError as e:
+        duration = time.time() - start_time
+        typer.secho(
+            f"\n✗ Script execution failed after {format_duration(duration)}",
+            fg=typer.colors.RED,
+        )
+
+        if e.stderr:
+            typer.echo("Error output:")
+            typer.echo(e.stderr)
+        elif hasattr(e, "output") and e.output:
+            typer.echo("Output:")
+            typer.echo(e.output)
+
+        raise typer.Exit(code=e.returncode)
+    except KeyboardInterrupt:
+        duration = time.time() - start_time
+        typer.secho(
+            f"\n⚠ Script interrupted after {format_duration(duration)}",
+            fg=typer.colors.YELLOW,
+        )
+        raise typer.Exit(code=130)
 
 
 @app.command("run", help="Run a script by name.")
@@ -1014,6 +1266,9 @@ def debug_plugins():
 
     if not plugins:
         typer.secho("  No plugins registered", fg=typer.colors.YELLOW)
+
+
+register_script_commands()
 
 
 if __name__ == "__main__":
