@@ -1,0 +1,98 @@
+# Ginx Project Management Configuration
+# Minimal setup for Ginx project
+
+scripts:
+  # ===============================================
+  # DEVELOPMENT SETUP
+  # ===============================================
+
+  install:
+    command: "pip install -e ."
+    description: "Install Ginx in development mode"
+
+  setup-dev:
+    command: "pip install -e . && pip install -r requirements-dev.txt"
+    description: "Complete development setup"
+
+  # ===============================================
+  # CODE QUALITY & FORMATTING
+  # ===============================================
+
+  format:
+    command: "black ginx/ && isort ginx/"
+    description: "Format code with Black and isort"
+
+  lint:
+    command: "flake8 ginx/"
+    description: "Run flake8 linter"
+
+  typecheck:
+    command: "mypy ginx/ --ignore-missing-imports"
+    description: "Run MyPy type checking"
+
+  # ===============================================
+  # BUILD & RELEASE
+  # ===============================================
+
+  clean:
+    command: "rm -rf build/ dist/ *.egg-info"
+    description: "Clean build artifacts"
+
+  build:
+    command: "ginx run clean && python -m pip install --upgrade build && python -m build"
+    description: "Build source and wheel"
+
+  publish:
+    command: "python -m pip install --upgrade twine && python -m twine upload --repository pypi dist/*"
+    description: "Upload to PyPI"
+
+  release-patch:
+    command: "ginx run format && ginx run lint && ginx run typecheck && ginx run build && ginx run publish"
+    description: "Quick patch release"
+
+  # ===============================================
+  # GIT WORKFLOW
+  # ===============================================
+
+  add-all:
+    command: "git add ."
+    description: "Stage all changes"
+
+  commit:
+    command: "git commit -m '$COMMIT_MSG'"
+    description: "Commit with updates message"
+    env:
+      COMMIT_MSG: "[GINX] Updates"
+
+  push:
+    command: "git push -u origin main"
+    description: "Push to main"
+
+  pull:
+    command: "git pull origin main"
+    description: "Pull latest changes"
+
+  # ===============================================
+  # MAINTENANCE
+  # ===============================================
+
+  env-info:
+    command: "ginx env"
+    description: "Show Python environment info"
+
+  upgrade-pip:
+    command: "python -m pip install --upgrade pip"
+    description: "Upgrade pip to latest version"
+
+# ===============================================
+# PLUGIN CONFIGURATION
+# ===============================================
+plugins:
+  enabled:
+    - "version-sync"
+
+# ===============================================
+# GLOBAL SETTINGS
+# ===============================================
+settings:
+  dangerous_commands: true
