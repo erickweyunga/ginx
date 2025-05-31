@@ -20,7 +20,7 @@ Ginx is a command-line script runner powered by YAML configuration. It provides 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/ginx.git
+git clone https://github.com/erickweyunga/ginx.git
 cd ginx
 pip install -e .
 ```
