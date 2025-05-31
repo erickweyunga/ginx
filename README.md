@@ -107,7 +107,7 @@ ginx run test --stream --verbose
 
 ### `ginx init`
 
-Creates a sample configuration file with common script examples.
+Creates a configuration file with common script examples.
 
 ```bash
 ginx init

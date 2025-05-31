@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import typer
 import yaml
+from ginx.init import ginx_config
 
 DEFAULT_CONFIG_FILES = ["ginx.yaml", "ginx.yml", ".ginx.yaml", ".ginx.yml"]
 
@@ -294,93 +295,93 @@ def validate_configuration() -> List[str]:
 
 def create_sample_config(config_path: str = "ginx.yaml") -> None:
     """
-    Create a sample configuration file with all sections.
+    Create a ginx configuration file with all sections.
 
     Args:
-        config_path: Path where to create the sample config file.
+        config_path: Path where to create the ginx config file.
     """
-    sample_config: Dict[str, Any] = {
-        "# Ginx Configuration File": None,
-        "# Define your project scripts and configuration here": None,
-        "scripts": {
-            "build": {
-                "command": "python -m build",
-                "description": "Build the project using Python build module",
-            },
-            "test": {
-                "command": "pytest tests/",
-                "description": "Run all tests using pytest",
-            },
-            "lint": {
-                "command": "flake8 src/",
-                "description": "Run linter on source code",
-            },
-            "format": {
-                "command": "black src/ && isort src/",
-                "description": "Format code using Black and isort",
-            },
-            "clean": {
-                "command": "rm -rf build/ dist/ *.egg-info/",
-                "description": "Clean build artifacts",
-            },
-            "dev-server": {
-                "command": "python -m http.server 8000",
-                "description": "Start development server on port 8000",
-            },
-            "deploy": {
-                "command": "echo 'Deploying to $ENVIRONMENT'",
-                "description": "Deploy to specified environment",
-                "env": {"ENVIRONMENT": "staging"},
-            },
-        },
-        "plugins": {
-            "enabled": ["version-sync"],
-            "directories": ["./ginx_plugins", "~/.ginx/plugins"],
-            "settings": {"version-sync": {"auto_check": True, "timeout": 30}},
-        },
-        "settings": {
-            "default_shell": "bash",
-            "dangerous_commands": True,
-            "max_output_lines": 1000,
-            "timeout_seconds": 1800,
-            "auto_discover_plugins": True,
-        },
-    }
 
     try:
-        # Remove comment keys and create clean YAML
-        clean_config: Dict[str, Any] = {k: v for k, v in sample_config.items() if not k.startswith("#")}  # type: ignore
+        clean_config: Dict[str, Any] = {k: v for k, v in ginx_config.items() if not k.startswith("#")}  # type: ignore
 
-        with open(config_path, "w", encoding="utf-8") as f:
-            # Write header comments
-            f.write("# Ginx Configuration File\n")
-            f.write("# Define your project scripts and configuration here\n\n")
+        write_ginx_config(clean_config, config_path)
 
-            # Write the configuration
-            yaml.dump(
-                clean_config, f, default_flow_style=False, indent=2, sort_keys=False
-            )
-
-        typer.secho(
-            f"Sample configuration created: {config_path}", fg=typer.colors.GREEN
-        )
         typer.echo("Edit this file to define your own scripts, plugins, and settings.")
 
     except Exception as e:
-        typer.secho(f"Error creating sample config: {e}", fg=typer.colors.RED)
+        typer.secho(f"Error creating ginx config: {e}", fg=typer.colors.RED)
 
 
-# Backward compatibility aliases
+def write_ginx_config(config: Dict[str, Any], config_path: str = "ginx.yaml") -> None:
+    """
+    Write the Ginx configuration file with header and block comments.
+
+    Args:
+        config: Dictionary representing the configuration.
+        config_path: Output file path.
+    """
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            # Header comments
+            f.write("# Ginx Configuration File\n")
+            f.write("# Define your project scripts and configuration here\n\n")
+
+            # Scripts block
+            if "scripts" in config:
+                f.write("# Scripts\n")
+                yaml.dump(
+                    {"scripts": config["scripts"]},
+                    f,
+                    default_flow_style=False,
+                    sort_keys=False,
+                    indent=2,
+                    allow_unicode=True,
+                )
+                f.write("\n")
+
+            # Plugins block
+            if "plugins" in config:
+                f.write("# Plugins\n")
+                yaml.dump(
+                    {"plugins": config["plugins"]},
+                    f,
+                    default_flow_style=False,
+                    sort_keys=False,
+                    indent=2,
+                    allow_unicode=True,
+                )
+                f.write("\n")
+
+            # Settings block
+            if "settings" in config:
+                f.write("# Settings\n")
+                yaml.dump(
+                    {"settings": config["settings"]},
+                    f,
+                    default_flow_style=False,
+                    sort_keys=False,
+                    indent=2,
+                    allow_unicode=True,
+                )
+                f.write("\n")
+
+        typer.secho(f"Ginx config written to {config_path}", fg=typer.colors.GREEN)
+
+    except Exception as e:
+        typer.secho(f"Failed to write config: {e}", fg=typer.colors.RED)
+        raise e
+
+
 def get_scripts() -> Dict[str, Dict[str, Any]]:
-    """Alias for load_scripts() for backward compatibility."""
+    """Alias for load_scripts()"""
     return load_scripts()
 
 
 def get_plugin_config() -> Dict[str, Any]:
-    """Alias for load_plugin_config() for backward compatibility."""
+    """Alias for load_plugin_config()"""
     return load_plugin_config()
 
 
 def get_global_config() -> Dict[str, Any]:
-    """Alias for load_global_settings() for backward compatibility."""
+    """Alias for load_global_settings()"""
     return load_global_settings()
