@@ -27,8 +27,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = ["typer[all]>=0.9.0", "PyYAML>=6.0", "rich>=13.0.0"]
-license = "MIT"
-license-files = ["LICENSE"]
+license = { text = "MIT" }
 
 [project.optional-dependencies]
 dev = [
