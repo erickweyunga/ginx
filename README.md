@@ -1,6 +1,6 @@
 # Ginx Documentation
 
-![Ginx Logo](https://res.cloudinary.com/dsxjgnlco/image/upload/v1748659826/ginx-black_wrd4yn.jpg)
+![Ginx Logo](https://res.cloudinary.com/dsxjgnlco/image/upload/v1748660052/ginx-black-removebg-preview_l1tlrm.png)
 
 ## Overview
 
