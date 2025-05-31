@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ginx"
-version = "0.1.3"
+version = "0.1.4"
 description = "A command-line script runner powered by YAML configuration"
 readme = "README.md"
 authors = [{ name = "Eric Kweyunga", email = "maverickweyunga@gmail.com" }]
@@ -26,7 +26,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 requires-python = ">=3.8"
-dependencies = ["typer[all]>=0.9.0", "PyYAML>=6.0", "rich>=13.0.0"]
+dependencies = ["typer>=0.9.0", "PyYAML>=6.0", "rich>=13.0.0"]
 license = "MIT"
 license-files = [
     "LICENSE",
