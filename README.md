@@ -1,5 +1,7 @@
 # Ginx Documentation
 
+![Ginx Logo](https://res.cloudinary.com/dsxjgnlco/image/upload/v1748659826/ginx-black_wrd4yn.jpg)
+
 ## Overview
 
 Ginx is a command-line script runner powered by YAML configuration. It provides a unified interface for executing project scripts, managing dependencies, and automating development workflows.
