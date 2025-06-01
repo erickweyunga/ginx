@@ -52,7 +52,7 @@ def validate_command(command: str) -> bool:
                     fg=typer.colors.YELLOW,
                 )
                 typer.secho(
-                    "\nThis command is allowed because 'dangerous_commands' is enabled in config.\n",
+                    "This command is allowed because 'dangerous_commands' is enabled in config.",
                     fg=typer.colors.BLUE,
                 )
                 return True
@@ -311,32 +311,27 @@ def check_dependencies(required_commands: List[str]) -> Dict[str, bool]:
 
 def parse_command_with_extras(command_template: str, extra_input: str = "") -> str:
     """
-    Parse command template with ${variable} syntax
+    Parse command template with ${variable:type} syntax
 
-    Supported placeholders:
-    - ${variable}: Clean variable syntax (defaults to quoted string)
+    Supported placeholders (type is required):
+    - ${variable:string}: Quoted string variable
     - ${variable:raw}: Raw variable (no quoting)
-    - ${variable:number}: Numeric variable
+    - ${variable:number}: Numeric variable (validated)
+    - ${variable:args}: Multiple arguments (space-separated)
     """
 
-    # Handle legacy EXTRA_ placeholders (existing logic)
-    extra_pattern: str = r"EXTRA_([A-Z_]+)"
-    placeholders = re.findall(extra_pattern, command_template)
-
-    # Handle new ${variable} syntax
+    # Handle ${variable:type} syntax
     variable_pattern: str = r"\$\{([^}]+)\}"
     variables = re.findall(variable_pattern, command_template)
 
-    total_placeholders = len(placeholders) + len(variables)
-
-    if not total_placeholders and extra_input:
+    if not variables and extra_input:
         typer.secho(
-            "Warning: Extra input provided but no placeholder found",
+            "Warning: Extra input provided but no variable placeholder found",
             fg=typer.colors.YELLOW,
         )
         return command_template
 
-    if total_placeholders and not extra_input:
+    if variables and not extra_input:
         typer.secho(
             "✗ Error: Command requires extra input but none provided",
             fg=typer.colors.RED,
@@ -345,19 +340,36 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
 
     processed_command: str = command_template
 
-    # Processing ${variable}
     for variable in variables:
-        placeholder = f"${{{variable}}}"
+        placeholder: str = f"${{{variable}}}"
+        replacement: str = ""
 
-        if ":" in variable:
-            _, var_type = variable.split(":", 1)
-        else:
-            _, var_type = variable, "string"
+        if ":" not in variable:
+            typer.secho(
+                f"✗ Error: Variable type required. Use ${{{variable}:string}} instead of ${{{variable}}}",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(code=1)
 
-        # Processing based on type
-        if var_type == "raw":
+        _, var_type = variable.split(":", 1)
+
+        if var_type not in ["string", "raw", "number", "args"]:
+            typer.secho(
+                f"✗ Error: Unsupported variable type '{var_type}'. Use: string, raw, number, or args",
+                fg=typer.colors.RED,
+            )
+            raise typer.Exit(code=1)
+
+        # Process based on type
+        if var_type == "string":
+            # Quoted string - ensure proper quoting
+            escaped_input = extra_input.strip().replace('"', '\\"')
+            replacement = f'"{escaped_input}"'
+        elif var_type == "raw":
+            # Raw unquoted input
             replacement = extra_input.strip()
         elif var_type == "number":
+            # Validate numeric input
             try:
                 float(extra_input.strip())
                 replacement = extra_input.strip()
@@ -368,14 +380,13 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
                 )
                 raise typer.Exit(code=1)
         elif var_type == "args":
+            # Multiple arguments with proper quoting
             try:
                 args = shlex.split(extra_input)
                 replacement = " ".join(shlex.quote(arg) for arg in args)
             except ValueError as e:
                 typer.secho(f"✗ Error parsing arguments: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
-        else:
-            replacement = shlex.quote(extra_input.strip())
 
         processed_command = processed_command.replace(placeholder, replacement)
 
@@ -385,10 +396,9 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
 def parse_command_and_extra(
     command_str: str, extra: Optional[str] = None, needs_shell: bool = False
 ):
-    """Parse command with optional EXTRA_ placeholder support"""
+    """Parse command with ${variable} placeholder support"""
 
-    if "EXTRA_" in command_str:
-        # Process template with extra input
+    if "${" in command_str:
         try:
             processed_command_str = parse_command_with_extras(
                 command_str, str(extra) if extra else ""
@@ -396,7 +406,6 @@ def parse_command_and_extra(
         except typer.Exit:
             raise
 
-        # Parse the processed command
         if needs_shell:
             full_command = processed_command_str
             command_display = processed_command_str

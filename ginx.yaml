@@ -59,7 +59,7 @@ scripts:
     description: "Stage all changes"
 
   commit:
-    command: "git commit -m '${message}'"
+    command: "git commit -m '${message:string}'"
     description: "Commit with updates message"
 
   push:
