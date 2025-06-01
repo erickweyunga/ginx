@@ -1,16 +1,16 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 ginx_config: Dict[str, Any] = {
     "scripts": {
-        "hello-ginx": {
-            "command": "echo 'Hello, Ginx!'",
-            "description": "A script to greet Ginx users",
+        "upgrade-pip": {
+            "command": "python -m pip install --upgrade pip",
+            "description": "Upgrade pip to latest version",
         },
     },
     "plugins": {
         "enabled": ["version-sync"],
     },
     "settings": {
-        "dangerous_commands": True,
+        "dangerous_commands": False,
     },
 }

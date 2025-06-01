@@ -19,15 +19,19 @@ scripts:
   # ===============================================
 
   format:
-    command: "black ginx/ && isort ginx/"
+    command: "black src/ && isort src/"
+    description: "Format code with Black and isort"
+
+  flask:
+    command: "flask src/ && isort src/"
     description: "Format code with Black and isort"
 
   lint:
-    command: "flake8 ginx/"
+    command: "flake8 src/"
     description: "Run flake8 linter"
 
   typecheck:
-    command: "mypy ginx/ --ignore-missing-imports"
+    command: "mypy src/ --ignore-missing-imports"
     description: "Run MyPy type checking"
 
   # ===============================================
@@ -54,11 +58,11 @@ scripts:
   # GIT WORKFLOW
   # ===============================================
 
-  ga:
+  add:
     command: "git add ."
     description: "Stage all changes"
 
-  gc:
+  commit:
     command: "git commit -m EXTRA_STRING"
     description: "Commit with updates message"
 
@@ -66,25 +70,21 @@ scripts:
     command: "git push -u origin main"
     description: "Push to main"
 
-  gt:
+  tag:
     command: "git tag -a EXTRA_RAW -m 'release'"
     description: "Create a new git tag for the release"
 
-  gp:
+  pull:
     command: "git pull origin main"
     description: "Pull latest changes"
   
-  gr:
+  git-release:
     command: "git push origin main --tags"
     description: "Full release workflow"
 
   # ===============================================
   # MAINTENANCE
   # ===============================================
-
-  env-info:
-    command: "ginx env"
-    description: "Show Python environment info"
 
   upgrade-pip:
     command: "python -m pip install --upgrade pip"

@@ -1,6 +1,5 @@
 from typing import List
 
-
 COMMANDS: List[str] = [
     "version",
     "list",

@@ -1,5 +1,5 @@
 """
-Utility functions for Ginx CLI tool.
+Command execution, validation, and parsing utilities.
 """
 
 import os
@@ -7,95 +7,13 @@ import platform
 import re
 import shlex
 import subprocess
-import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
+import typing
 
 import typer
 
-from ginx.constants import (
-    COMMON_PROJECT_ROOT_MARKERS,
-    DANGEROUS_PATTERNS,
-    DEFAULT_REQUIREMENTS_FILES,
-)
+from ginx.constants import DANGEROUS_PATTERNS
 from ginx.loader import get_global_config
-
-
-def get_shell() -> str:
-    """
-    Get the current shell being used.
-
-    Returns:
-        Shell name (bash, zsh, fish, cmd, powershell, etc.)
-    """
-    if platform.system() == "Windows":
-        return os.environ.get("COMSPEC", "cmd").split("\\")[-1].lower()
-    else:
-        shell = os.environ.get("SHELL", "/bin/bash")
-        return shell.split("/")[-1]
-
-
-def detect_virtual_environment() -> Dict[str, Any]:
-    """Detect if we're in a virtual environment and return info about it."""
-    info: Dict[str, Any] = {
-        "in_venv": False,
-        "venv_type": None,
-        "venv_path": None,
-        "pip_target": None,
-    }
-
-    # Check for virtual environment
-    if hasattr(sys, "real_prefix") or (
-        hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix
-    ):
-        info["in_venv"] = True
-        info["venv_path"] = sys.prefix
-
-        # Detect venv type
-        if "conda" in sys.prefix.lower() or "anaconda" in sys.prefix.lower():
-            info["venv_type"] = "conda"
-        elif "venv" in sys.prefix or "virtualenv" in sys.prefix:
-            info["venv_type"] = "venv"
-        else:
-            info["venv_type"] = "unknown"
-
-    return info
-
-
-def suggest_virtual_environment():
-    """Suggest creating a virtual environment."""
-    typer.secho("\n💡 Recommendation: Use a virtual environment", fg=typer.colors.CYAN)
-    typer.echo("Create one with:")
-    typer.echo("  python -m venv .venv")
-    typer.echo("  source .venv/bin/activate  # Linux/Mac")
-    typer.echo("  .venv\\Scripts\\activate     # Windows")
-    typer.echo("  ginx install-deps --script-deps")
-
-
-def expand_variables(command: str, env_vars: Optional[Dict[str, str]] = None) -> str:
-    """
-    Expand environment variables in command string.
-
-    Args:
-        command: Command string that may contain environment variables
-        env_vars: Additional environment variables to use for expansion
-
-    Returns:
-        Command string with expanded variables
-    """
-    if env_vars:
-        # Create a copy of os.environ and update with additional vars
-        expanded_env = os.environ.copy()
-        expanded_env.update(env_vars)
-
-        # Expand variables
-        for key, value in expanded_env.items():
-            command = command.replace(f"${key}", value)
-            command = command.replace(f"${{{key}}}", value)
-            if platform.system() == "Windows":
-                command = command.replace(f"%{key}%", value)
-
-    return os.path.expandvars(command)
 
 
 def validate_command(command: str) -> bool:
@@ -245,7 +163,7 @@ def run_command_with_streaming_shell(
         return 1
 
 
-def extract_commands_from_shell_string(command_str: str) -> set[str]:
+def extract_commands_from_shell_string(command_str: str) -> typing.Set[str]:
     """
     Extract all command names from a shell command string with operators.
 
@@ -256,7 +174,7 @@ def extract_commands_from_shell_string(command_str: str) -> set[str]:
         "grep 'pattern|pipe' | sort" -> {'grep', 'sort'}
         'cd "$HOME" && pwd' -> {'cd', 'pwd'}
     """
-    commands: set[str] = set()
+    commands: typing.Set[str] = set()
 
     # Shell operators that separate commands
     shell_operators = ["&&", "||", ";", "|"]
@@ -391,130 +309,6 @@ def check_dependencies(required_commands: List[str]) -> Dict[str, bool]:
     return results
 
 
-def get_project_root() -> Optional[Path]:
-    """
-    Find the project root directory by looking for common markers.
-
-    Returns:
-        Path to project root if found, None otherwise
-    """
-    current = Path.cwd()
-
-    for directory in [current] + list(current.parents):
-        for marker in COMMON_PROJECT_ROOT_MARKERS:
-            if (directory / marker).exists():
-                return directory
-
-    return None
-
-
-def format_duration(seconds: float) -> str:
-    """
-    Format duration in a human-readable way.
-
-    Args:
-        seconds: Duration in seconds
-
-    Returns:
-        Formatted duration string
-    """
-    if seconds < 1:
-        return f"{seconds:.2f}s"
-    elif seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        minutes = int(seconds // 60)
-        secs = int(seconds % 60)
-        return f"{minutes}m {secs}s"
-    else:
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        return f"{hours}h {minutes}m"
-
-
-def safe_filename(filename: str) -> str:
-    """
-    Convert a string to a safe filename by removing/replacing invalid characters.
-
-    Args:
-        filename: Original filename
-
-    Returns:
-        Safe filename
-    """
-    # Characters not allowed in filenames
-    invalid_chars = '<>:"/\\|?*'
-
-    safe_name = filename
-    for char in invalid_chars:
-        safe_name = safe_name.replace(char, "_")
-
-    # Remove leading/trailing whitespace and dots
-    safe_name = safe_name.strip(" .")
-
-    # Ensure it's not empty
-    if not safe_name:
-        safe_name = "unnamed"
-
-    return safe_name
-
-
-def colorize_output(text: str, success: bool = True) -> str:
-    """
-    Add color codes to text based on success/failure.
-
-    Args:
-        text: Text to colorize
-        success: Whether this represents success (green) or failure (red)
-
-    Returns:
-        Colorized text
-    """
-    if success:
-        return typer.style(text, fg=typer.colors.GREEN)
-    else:
-        return typer.style(text, fg=typer.colors.RED)
-
-
-def find_requirements_files() -> List[str]:
-    """Find available requirements files in the project."""
-    found_files: List[str] = []
-    for req_file in DEFAULT_REQUIREMENTS_FILES:
-        if os.path.exists(req_file):
-            found_files.append(req_file)
-    return found_files
-
-
-def parse_requirements_file(file_path: str) -> List[str]:
-    """Parse a requirements file and return list of packages."""
-    packages: List[str] = []
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                # Skip comments and empty lines
-                if line and not line.startswith("#") and not line.startswith("-"):
-                    # Handle package names with version specifiers
-                    package_name = (
-                        line.split("==")[0]
-                        .split(">=")[0]
-                        .split("<=")[0]
-                        .split("~=")[0]
-                        .split(">")[0]
-                        .split("<")[0]
-                        .strip()
-                    )
-                    if package_name:
-                        packages.append(
-                            line
-                        )  # Keep full specification for installation
-    except Exception as e:
-        typer.secho(
-            f"Warning: Could not parse {file_path}: {e}", fg=typer.colors.YELLOW
-        )
-    return packages
-
-
 def parse_command_with_extras(command_template: str, extra_input: str = "") -> str:
     """
     Parse command template with EXTRA_[DATATYPE] placeholders
@@ -538,7 +332,8 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
 
     if placeholders and not extra_input:
         typer.secho(
-            "✗ Error: Command requires extra input but none provided", fg=typer.colors.RED
+            "✗ Error: Command requires extra input but none provided",
+            fg=typer.colors.RED,
         )
         raise typer.Exit(code=1)
 
@@ -621,7 +416,9 @@ def parse_command_and_extra(
             command_display = full_command
         else:
             try:
-                command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
+                command = shlex.split(command_str) + (
+                    shlex.split(extra) if extra else []
+                )
                 full_command = command
                 command_display = " ".join(command)
 

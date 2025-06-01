@@ -7,19 +7,14 @@ from typing import Any, Dict, List, Optional
 
 import typer
 import yaml
+
 from ginx.init import ginx_config
 
 DEFAULT_CONFIG_FILES = ["ginx.yaml", "ginx.yml", ".ginx.yaml", ".ginx.yml"]
+SUPPORTED_LANGUAGES = ["python"]
 
 # Default settings
-DEFAULT_SETTINGS: dict[str, Any] = {
-    "default_shell": "bash",
-    "dangerous_commands": True,
-    "max_output_lines": 1000,
-    "timeout_seconds": 1800,
-    "auto_discover_plugins": True,
-    "plugin_directories": [],
-}
+DEFAULT_SETTINGS: Dict[str, Any] = {"dangerous_commands": True}
 
 
 def find_config_file() -> Optional[Path]:
@@ -70,7 +65,7 @@ def load_config() -> Dict[str, Any]:
             config["settings"] = {}
 
         # Merge settings with defaults
-        merged_settings: dict[str, Any] = DEFAULT_SETTINGS.copy()
+        merged_settings: Dict[str, Any] = DEFAULT_SETTINGS.copy()
         merged_settings.update(config["settings"])
         config["settings"] = merged_settings
 
@@ -179,7 +174,7 @@ def load_global_settings() -> Dict[str, Any]:
     Returns:
         Dictionary containing global settings merged with defaults.
     """
-    config = load_config()
+    config: Dict[str, Any] = load_config()
     return config.get("settings", DEFAULT_SETTINGS.copy())
 
 
@@ -232,7 +227,7 @@ def get_plugin_directories() -> List[str]:
         List of directory paths for plugin discovery
     """
     plugin_config = load_plugin_config()
-    directories = plugin_config.get("directories", [])
+    directories: List[str] = plugin_config.get("directories", [])
 
     # Add default directories if auto-discovery is enabled
     settings = load_global_settings()

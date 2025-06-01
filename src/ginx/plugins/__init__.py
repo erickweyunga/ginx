@@ -89,7 +89,7 @@ class GinxPlugin(ABC):
 class PluginManager:
     """Manages Ginx plugins."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._plugins: Dict[str, GinxPlugin] = {}
         self._initialized = False
 

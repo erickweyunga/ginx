@@ -56,7 +56,7 @@ class PyPIClient:
         """
         package_info = self.get_package_info(package_name, timeout)
         if package_info:
-            return package_info.get("info", {}).get("version")
+            return str(package_info.get("info", {}).get("version"))
         return None
 
     def get_package_releases(
@@ -72,7 +72,7 @@ class PyPIClient:
         Returns:
             Releases information dict or None if failed
         """
-        package_info = self.get_package_info(package_name, timeout)
+        package_info: Optional[Dict[str, Any]] = self.get_package_info(package_name, timeout)
         if package_info:
             return package_info.get("releases", {})
         return None
@@ -105,7 +105,7 @@ class PyPIClient:
         """
         package_info = self.get_package_info(package_name, timeout)
         if package_info:
-            return package_info.get("info", {}).get("summary")
+            return str(package_info.get("info", {}).get("summary"))
         return None
 
 

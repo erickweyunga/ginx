@@ -18,7 +18,7 @@ from .version_utils import has_packaging_library
 class VersionSyncPlugin(GinxPlugin):
     """Plugin for version synchronization and update checking."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.check_updates_cmd = CheckUpdatesCommand()
         self.sync_versions_cmd = SyncVersionsCommand()
         self.version_diff_cmd = VersionDiffCommand()
