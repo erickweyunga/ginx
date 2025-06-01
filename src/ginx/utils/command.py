@@ -13,7 +13,7 @@ import typing
 import typer
 
 from ginx.constants import DANGEROUS_PATTERNS
-from ginx.loader import get_global_config
+from ginx.config import get_global_config
 
 
 def validate_command(command: str) -> bool:
@@ -311,26 +311,32 @@ def check_dependencies(required_commands: List[str]) -> Dict[str, bool]:
 
 def parse_command_with_extras(command_template: str, extra_input: str = "") -> str:
     """
-    Parse command template with EXTRA_[DATATYPE] placeholders
+    Parse command template with ${variable} syntax
 
     Supported placeholders:
-    - EXTRA_STRING: Quoted string argument
-    - EXTRA_RAW: Raw unquoted argument
-    - EXTRA_NUMBER: Numeric argument
-    - EXTRA_ARGS: Multiple arguments (split by spaces)
+    - ${variable}: Clean variable syntax (defaults to quoted string)
+    - ${variable:raw}: Raw variable (no quoting)
+    - ${variable:number}: Numeric variable
     """
 
+    # Handle legacy EXTRA_ placeholders (existing logic)
     extra_pattern: str = r"EXTRA_([A-Z_]+)"
     placeholders = re.findall(extra_pattern, command_template)
 
-    if not placeholders and extra_input:
+    # Handle new ${variable} syntax
+    variable_pattern: str = r"\$\{([^}]+)\}"
+    variables = re.findall(variable_pattern, command_template)
+
+    total_placeholders = len(placeholders) + len(variables)
+
+    if not total_placeholders and extra_input:
         typer.secho(
-            "Warning: Extra input provided but no EXTRA_ placeholder found",
+            "Warning: Extra input provided but no placeholder found",
             fg=typer.colors.YELLOW,
         )
         return command_template
 
-    if placeholders and not extra_input:
+    if total_placeholders and not extra_input:
         typer.secho(
             "✗ Error: Command requires extra input but none provided",
             fg=typer.colors.RED,
@@ -339,19 +345,19 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
 
     processed_command: str = command_template
 
-    for placeholder_type in placeholders:
-        placeholder = f"EXTRA_{placeholder_type}"
+    # Processing ${variable}
+    for variable in variables:
+        placeholder = f"${{{variable}}}"
 
-        if placeholder_type == "STRING":
-            # Handle as quoted string - preserve as single argument
-            replacement = shlex.quote(extra_input.strip())
+        if ":" in variable:
+            _, var_type = variable.split(":", 1)
+        else:
+            _, var_type = variable, "string"
 
-        elif placeholder_type == "RAW":
-            # Handle as raw input - no quoting
+        # Processing based on type
+        if var_type == "raw":
             replacement = extra_input.strip()
-
-        elif placeholder_type == "NUMBER":
-            # Validate as number
+        elif var_type == "number":
             try:
                 float(extra_input.strip())
                 replacement = extra_input.strip()
@@ -361,22 +367,15 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
                     fg=typer.colors.RED,
                 )
                 raise typer.Exit(code=1)
-
-        elif placeholder_type == "ARGS":
-            # Split into multiple arguments
+        elif var_type == "args":
             try:
                 args = shlex.split(extra_input)
                 replacement = " ".join(shlex.quote(arg) for arg in args)
             except ValueError as e:
                 typer.secho(f"✗ Error parsing arguments: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
-
         else:
-            typer.secho(
-                f"✗ Error: Unknown placeholder type EXTRA_{placeholder_type}",
-                fg=typer.colors.RED,
-            )
-            raise typer.Exit(code=1)
+            replacement = shlex.quote(extra_input.strip())
 
         processed_command = processed_command.replace(placeholder, replacement)
 

@@ -155,11 +155,11 @@ class PluginManager:
         module_name = f"ginx_plugin_{plugin_file.stem}"
 
         spec = importlib.util.spec_from_file_location(module_name, plugin_file)
-        if spec is None or spec.loader is None:
+        if spec is None or spec.config is None:
             raise ImportError(f"Could not load spec for {plugin_file}")
 
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        spec.config.exec_module(module)
 
         # Look for plugin classes
         for attr_name in dir(module):

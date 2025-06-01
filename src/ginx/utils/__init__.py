@@ -3,7 +3,7 @@ Ginx utilities module - centralized exports for all utility functions.
 """
 
 # Command execution utilities
-from .command_utils import (
+from .command import (
     check_dependencies,
     extract_commands_from_shell_string,
     parse_command_and_extra,
@@ -14,7 +14,7 @@ from .command_utils import (
 )
 
 # File and project utilities
-from .file_utils import (
+from .file import (
     find_requirements_files,
     get_project_root,
     parse_requirements_file,
@@ -22,13 +22,13 @@ from .file_utils import (
 )
 
 # Formatting utilities
-from .format_utils import (
+from .format import (
     colorize_output,
     format_duration,
 )
 
 # System and environment utilities
-from .system_utils import (
+from .system import (
     expand_variables,
     get_shell,
 )

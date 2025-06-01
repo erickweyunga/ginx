@@ -22,10 +22,6 @@ scripts:
     command: "black src/ && isort src/"
     description: "Format code with Black and isort"
 
-  flask:
-    command: "flask src/ && isort src/"
-    description: "Format code with Black and isort"
-
   lint:
     command: "flake8 src/"
     description: "Run flake8 linter"
@@ -63,7 +59,7 @@ scripts:
     description: "Stage all changes"
 
   commit:
-    command: "git commit -m EXTRA_STRING"
+    command: "git commit -m '${message}'"
     description: "Commit with updates message"
 
   push:
@@ -71,7 +67,7 @@ scripts:
     description: "Push to main"
 
   tag:
-    command: "git tag -a EXTRA_RAW -m 'release'"
+    command: "git tag -a '${version}' -m 'Release ${version}'"
     description: "Create a new git tag for the release"
 
   pull:

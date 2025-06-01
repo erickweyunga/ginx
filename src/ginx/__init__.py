@@ -10,7 +10,7 @@ __author__ = "Ginx Contributors"
 __email__ = "maverickweyunga@gmail.com"
 __description__ = "A command-line script runner powered by YAML configuration"
 
-from .loader import create_sample_config, find_config_file, load_scripts
+from .config import create_sample_config, find_config_file, load_scripts
 from .utils import (
     check_dependencies,
     expand_variables,
