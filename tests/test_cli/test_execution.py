@@ -15,14 +15,10 @@ class TestScriptExecution:
 
     @patch("ginx.cli.execution.get_scripts")
     @patch("ginx.cli.execution.run_command_with_streaming")
-    def test_execute_script_success(
-        self, mock_run_cmd: MagicMock, mock_get_scripts: MagicMock
-    ):
+    def test_execute_script_success(self, mock_run_cmd: MagicMock, mock_get_scripts: MagicMock):
         """Test successful script execution."""
         # Setup mocks
-        mock_get_scripts.return_value = {
-            "test": {"command": "pytest", "description": "Run tests", "depends": []}
-        }
+        mock_get_scripts.return_value = {"test": {"command": "pytest", "description": "Run tests", "depends": []}}
         mock_run_cmd.return_value = 0
 
         # Execute script - use incremental time values
@@ -42,9 +38,7 @@ class TestScriptExecution:
 
     @patch("ginx.cli.execution.get_scripts")
     @patch("ginx.cli.execution.validate_command")
-    def test_execute_script_validation_fails(
-        self, mock_validate: MagicMock, mock_get_scripts: MagicMock
-    ):
+    def test_execute_script_validation_fails(self, mock_validate: MagicMock, mock_get_scripts: MagicMock):
         """Test script execution with validation failure."""
         mock_get_scripts.return_value = {
             "dangerous": {
@@ -59,13 +53,9 @@ class TestScriptExecution:
             execute_script_logic("dangerous", {}, "", True, False, False)
 
     @patch("ginx.cli.execution.get_scripts")
-    def test_execute_script_dry_run(
-        self, mock_get_scripts: MagicMock, capsys: MagicMock
-    ):
+    def test_execute_script_dry_run(self, mock_get_scripts: MagicMock, capsys: MagicMock):
         """Test dry run execution."""
-        mock_get_scripts.return_value = {
-            "test": {"command": "pytest", "description": "Run tests", "depends": []}
-        }
+        mock_get_scripts.return_value = {"test": {"command": "pytest", "description": "Run tests", "depends": []}}
 
         execute_script_logic("test", {}, "", True, True, False)
 
@@ -160,9 +150,7 @@ class TestScriptExecution:
             execute_script_logic("self_dep", {}, "", True, False, False)
 
     @patch("ginx.cli.execution.get_scripts")
-    def test_dependency_execution_order(
-        self, mock_get_scripts: MagicMock, capsys: MagicMock
-    ):
+    def test_dependency_execution_order(self, mock_get_scripts: MagicMock, capsys: MagicMock):
         """Test that dependencies execute in correct order."""
         mock_get_scripts.return_value = {
             "first": {
@@ -180,9 +168,7 @@ class TestScriptExecution:
         with patch("ginx.cli.execution.run_command_with_streaming") as mock_run:
             mock_run.return_value = 0
             with patch("ginx.cli.execution.time.time", side_effect=list(range(20))):
-                execute_script_logic(
-                    "second", {}, "", True, False, True
-                )  # verbose=True
+                execute_script_logic("second", {}, "", True, False, True)  # verbose=True
 
         captured = capsys.readouterr()
         # Check execution plan is shown
@@ -360,9 +346,7 @@ class TestScriptExecution:
         assert mock_run.call_count == 2
 
     @patch("ginx.cli.execution.get_scripts")
-    def test_verbose_dependency_execution(
-        self, mock_get_scripts: MagicMock, capsys: MagicMock
-    ):
+    def test_verbose_dependency_execution(self, mock_get_scripts: MagicMock, capsys: MagicMock):
         """Test verbose output during dependency execution."""
         mock_get_scripts.return_value = {
             "format": {

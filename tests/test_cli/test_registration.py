@@ -55,9 +55,7 @@ class TestScriptRegistration:
         # In a real test, you'd verify that 'version' command wasn't registered
 
     @patch("ginx.cli.registration.get_scripts")
-    def test_register_script_commands_error_handling(
-        self, mock_get_scripts: MagicMock, capsys: MagicMock
-    ):
+    def test_register_script_commands_error_handling(self, mock_get_scripts: MagicMock, capsys: MagicMock):
         """Test error handling during registration."""
         mock_get_scripts.side_effect = Exception("Config error")
 

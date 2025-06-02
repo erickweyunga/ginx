@@ -104,9 +104,7 @@ class TestScriptConfiguration:
         assert "version" in conflicts
         assert conflicts["version"]["command"] == "echo v1.0.0"
 
-    def test_load_scripts_shows_warnings(
-        self, sample_config: Dict[str, Any], capsys: Any
-    ):
+    def test_load_scripts_shows_warnings(self, sample_config: Dict[str, Any], capsys: Any):
         """Test that warnings are shown for conflicting scripts."""
         load_scripts(sample_config, show_warnings=True)
         captured = capsys.readouterr()

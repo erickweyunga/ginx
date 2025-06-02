@@ -43,9 +43,7 @@ COMPLEX_CONFIG: Dict[str, Any] = {
 
 # Invalid configurations for error testing
 INVALID_CONFIGS: Dict[str, Any] = {
-    "missing_command": {
-        "scripts": {"broken": {"description": "Missing command field"}}
-    },
+    "missing_command": {"scripts": {"broken": {"description": "Missing command field"}}},
     "invalid_yaml": "invalid: yaml: content:",
     "wrong_type": {"scripts": "this should be a dict"},
 }

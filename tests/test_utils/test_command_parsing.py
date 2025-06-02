@@ -14,9 +14,7 @@ class TestCommandParsing:
     def test_command_with_variables(self):
         """Test parsing command with variables."""
         command = "git commit -m ${message:string}"
-        full_cmd, display = parse_command_and_extra(
-            command, "fix: bug", needs_shell=False
-        )
+        full_cmd, display = parse_command_and_extra(command, "fix: bug", needs_shell=False)
 
         assert isinstance(full_cmd, list)
         assert full_cmd == ["git", "commit", "-m", "fix: bug"]  # Split removes quotes
@@ -25,9 +23,7 @@ class TestCommandParsing:
     def test_command_with_variables_shell(self):
         """Test parsing command with variables for shell execution."""
         command = "git commit -m ${message:string}"
-        full_cmd, display = parse_command_and_extra(
-            command, "fix: bug", needs_shell=True
-        )
+        full_cmd, display = parse_command_and_extra(command, "fix: bug", needs_shell=True)
 
         assert isinstance(full_cmd, str)
         assert full_cmd == 'git commit -m "fix: bug"'
@@ -36,9 +32,7 @@ class TestCommandParsing:
     def test_command_without_variables(self):
         """Test parsing regular command without variables."""
         command = "pytest"
-        full_cmd, display = parse_command_and_extra(
-            command, "--verbose", needs_shell=False
-        )
+        full_cmd, display = parse_command_and_extra(command, "--verbose", needs_shell=False)
 
         assert full_cmd == ["pytest", "--verbose"]
         assert display == "pytest --verbose"

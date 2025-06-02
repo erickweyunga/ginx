@@ -28,9 +28,7 @@ class TestConfigDiscovery:
         assert result is not None
         assert result.name == "ginx.yaml"
 
-    def test_find_config_file_in_parent(
-        self, temp_dir: Path, sample_config: Dict[str, Any]
-    ):
+    def test_find_config_file_in_parent(self, temp_dir: Path, sample_config: Dict[str, Any]):
         """Test finding config file in parent directory."""
         # Create config in temp_dir
         config_path = temp_dir / "ginx.yaml"

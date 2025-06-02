@@ -66,9 +66,7 @@ class TestVariableParsing:
     def test_args_type_needs_quoting(self):
         """Test args that actually need quoting."""
         command = "git add ${files:args}"
-        result = parse_command_with_extras(
-            command, "'file with spaces.txt' 'another file.txt'"
-        )
+        result = parse_command_with_extras(command, "'file with spaces.txt' 'another file.txt'")
         assert result == "git add 'file with spaces.txt' 'another file.txt'"
 
     def test_multiple_variables_same_value(self):
@@ -120,10 +118,6 @@ class TestVariableParsing:
         """Test complex command with multiple variable types."""
         command = "docker run --name ${name:raw} -p ${port:number} -v ${volumes:args} ${image:string}"
         # Use input that will produce predictable quoting
-        result = parse_command_with_extras(
-            command, 'myapp 8080 "/data:/app /logs:/logs" nginx'
-        )
-        expected = (
-            "docker run --name myapp -p 8080 -v '/data:/app /logs:/logs' \"nginx\""
-        )
+        result = parse_command_with_extras(command, 'myapp 8080 "/data:/app /logs:/logs" nginx')
+        expected = "docker run --name myapp -p 8080 -v '/data:/app /logs:/logs' \"nginx\""
         assert result == expected
