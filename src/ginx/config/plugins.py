@@ -48,9 +48,7 @@ def _normalize_plugin_list(value: Union[str, List[Optional[str]]]) -> List[str]:
     return [str(item) for item in value if item is not None]
 
 
-def is_plugin_enabled(
-    plugin_name: str, config: Optional[Dict[str, Any]] = None
-) -> bool:
+def is_plugin_enabled(plugin_name: str, config: Optional[Dict[str, Any]] = None) -> bool:
     """
     Check if a plugin is enabled.
 
@@ -105,9 +103,7 @@ def get_plugin_directories(config: Optional[Dict[str, Any]] = None) -> List[str]
     return directories
 
 
-def get_plugin_settings(
-    plugin_name: str, config: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+def get_plugin_settings(plugin_name: str, config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Get settings for a specific plugin.
 

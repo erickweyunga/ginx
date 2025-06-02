@@ -5,7 +5,7 @@ This package provides a powerful way to define and run project scripts
 using YAML configuration files.
 """
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 __author__ = "Ginx Contributors"
 __email__ = "maverickweyunga@gmail.com"
 __description__ = "A command-line script runner powered by YAML configuration"

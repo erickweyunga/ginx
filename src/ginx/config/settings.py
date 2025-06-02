@@ -33,9 +33,7 @@ def load_settings(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     return merged_settings
 
 
-def get_setting(
-    key: str, default: Any = None, config: Optional[Dict[str, Any]] = None
-) -> Any:
+def get_setting(key: str, default: Any = None, config: Optional[Dict[str, Any]] = None) -> Any:
     """
     Get a specific setting value.
 

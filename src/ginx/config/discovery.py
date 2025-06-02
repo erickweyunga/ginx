@@ -9,9 +9,7 @@ from typing import List, Optional
 DEFAULT_CONFIG_FILES = ["ginx.yaml", "ginx.yml", ".ginx.yaml", ".ginx.yml"]
 
 
-def find_config_file(
-    start_dir: Optional[Path] = None, config_names: Optional[List[str]] = None
-) -> Optional[Path]:
+def find_config_file(start_dir: Optional[Path] = None, config_names: Optional[List[str]] = None) -> Optional[Path]:
     """
     Find the configuration file in the current directory or parent directories.
 

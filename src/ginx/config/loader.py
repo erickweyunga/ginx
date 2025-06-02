@@ -75,9 +75,7 @@ def normalize_config(raw_config: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
-def load_config(
-    config_path: Optional[Path] = None, silent: bool = False
-) -> Dict[str, Any]:
+def load_config(config_path: Optional[Path] = None, silent: bool = False) -> Dict[str, Any]:
     """
     Load and normalize configuration with error handling.
 

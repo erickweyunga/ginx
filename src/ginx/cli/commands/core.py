@@ -88,9 +88,7 @@ def validate_config_command() -> None:
         typer.echo()
 
     if issues_found:
-        typer.secho(
-            "Configuration has issues that need to be fixed.", fg=typer.colors.RED
-        )
+        typer.secho("Configuration has issues that need to be fixed.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
     else:
         typer.secho("✓ Configuration is valid!", fg=typer.colors.GREEN, bold=True)
@@ -155,9 +153,7 @@ def check_dependencies_command() -> None:
         typer.echo()
 
 
-def show_dependency_graph(
-    script_name: Optional[str] = typer.Argument(None, help="Script to analyze")
-) -> None:
+def show_dependency_graph(script_name: Optional[str] = typer.Argument(None, help="Script to analyze")) -> None:
     """Show dependency graph for all scripts or a specific script."""
     scripts = get_scripts()
 
@@ -167,9 +163,7 @@ def show_dependency_graph(
             raise typer.Exit(code=1)
 
         execution_order = resolve_execution_order(scripts, script_name)
-        typer.secho(
-            f"Dependency chain for '{script_name}':", fg=typer.colors.BLUE, bold=True
-        )
+        typer.secho(f"Dependency chain for '{script_name}':", fg=typer.colors.BLUE, bold=True)
         for i, script in enumerate(execution_order):
             typer.echo(f"  {i+1}. {script}")
     else:

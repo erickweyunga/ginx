@@ -60,9 +60,7 @@ def get_packages_from_requirements(requirements_file: str) -> Dict[str, str]:
     return packages
 
 
-def compare_package_sets(
-    packages1: Dict[str, str], packages2: Dict[str, str]
-) -> Dict[str, Dict[str, str]]:
+def compare_package_sets(packages1: Dict[str, str], packages2: Dict[str, str]) -> Dict[str, Dict[str, str]]:
     """
     Compare two sets of packages and their versions.
 
@@ -99,9 +97,7 @@ def compare_package_sets(
     return results
 
 
-def filter_system_packages(
-    packages: Dict[str, str], exclude_system: bool = True
-) -> Dict[str, str]:
+def filter_system_packages(packages: Dict[str, str], exclude_system: bool = True) -> Dict[str, str]:
     """
     Filter out system/built-in packages if requested.
 
@@ -134,16 +130,10 @@ def filter_system_packages(
         "pytz",
     }
 
-    return {
-        name: version
-        for name, version in packages.items()
-        if name not in system_packages
-    }
+    return {name: version for name, version in packages.items() if name not in system_packages}
 
 
-def create_pinned_requirements(
-    packages: Dict[str, str], header_comment: str = ""
-) -> List[str]:
+def create_pinned_requirements(packages: Dict[str, str], header_comment: str = "") -> List[str]:
     """
     Create pinned requirements file content from package dictionary.
 
@@ -190,10 +180,7 @@ def get_editable_packages() -> Dict[str, str]:
         )
 
         packages = json.loads(result.stdout)
-        return {
-            normalize_package_name(pkg["name"]): pkg.get("location", "unknown")
-            for pkg in packages
-        }
+        return {normalize_package_name(pkg["name"]): pkg.get("location", "unknown") for pkg in packages}
     except (subprocess.CalledProcessError, json.JSONDecodeError):
         return {}
 
@@ -241,13 +228,9 @@ def validate_requirements_file(requirements_file: str) -> List[str]:
             name, _, ver = parse_package_line(pkg_line)
 
             if not name:
-                issues.append(
-                    f"Line {line_num}: Could not parse package name from '{pkg_line}'"
-                )
+                issues.append(f"Line {line_num}: Could not parse package name from '{pkg_line}'")
             elif not ver and not pkg_line.startswith("-"):
-                issues.append(
-                    f"Line {line_num}: Package '{name}' has no version specified"
-                )
+                issues.append(f"Line {line_num}: Package '{name}' has no version specified")
 
     except Exception as e:
         issues.append(f"Error reading file: {e}")

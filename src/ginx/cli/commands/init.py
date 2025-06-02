@@ -10,12 +10,8 @@ from ginx.config import create_sample_config
 
 
 def init_config_command(
-    filename: str = typer.Option(
-        "ginx.yaml", "--file", "-f", help="Configuration filename"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite existing configuration file"
-    ),
+    filename: str = typer.Option("ginx.yaml", "--file", "-f", help="Configuration filename"),
+    force: bool = typer.Option(False, "--force", help="Overwrite existing configuration file"),
 ) -> None:
     """Create a sample configuration file with common script examples."""
 

@@ -15,9 +15,7 @@ class PyPIClient:
         self.user_agent = user_agent
         self.base_url = "https://pypi.org/pypi"
 
-    def get_package_info(
-        self, package_name: str, timeout: int = 10
-    ) -> Optional[Dict[str, Any]]:
+    def get_package_info(self, package_name: str, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """
         Get package information from PyPI API.
 
@@ -59,9 +57,7 @@ class PyPIClient:
             return str(package_info.get("info", {}).get("version"))
         return None
 
-    def get_package_releases(
-        self, package_name: str, timeout: int = 10
-    ) -> Optional[Dict[str, Any]]:
+    def get_package_releases(self, package_name: str, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """
         Get all releases for a package from PyPI.
 
@@ -72,9 +68,7 @@ class PyPIClient:
         Returns:
             Releases information dict or None if failed
         """
-        package_info: Optional[Dict[str, Any]] = self.get_package_info(
-            package_name, timeout
-        )
+        package_info: Optional[Dict[str, Any]] = self.get_package_info(package_name, timeout)
         if package_info:
             return package_info.get("releases", {})
         return None
@@ -92,9 +86,7 @@ class PyPIClient:
         """
         return self.get_package_info(package_name, timeout) is not None
 
-    def get_package_summary(
-        self, package_name: str, timeout: int = 10
-    ) -> Optional[str]:
+    def get_package_summary(self, package_name: str, timeout: int = 10) -> Optional[str]:
         """
         Get package summary/description from PyPI.
 
@@ -115,9 +107,7 @@ class PyPIClient:
 _pypi_client = PyPIClient()
 
 
-def get_pypi_package_info(
-    package_name: str, timeout: int = 10
-) -> Optional[Dict[str, Any]]:
+def get_pypi_package_info(package_name: str, timeout: int = 10) -> Optional[Dict[str, Any]]:
     """Get package information from PyPI API (convenience function)."""
     return _pypi_client.get_package_info(package_name, timeout)
 

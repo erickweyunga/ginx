@@ -60,9 +60,7 @@ def validate_command(command: str) -> bool:
     return True
 
 
-def run_command_with_streaming(
-    command: List[str], cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None
-) -> int:
+def run_command_with_streaming(command: List[str], cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None) -> int:
     """
     Run a command with real-time output streaming.
 
@@ -111,9 +109,7 @@ def run_command_with_streaming(
         return 1
 
 
-def run_command_with_streaming_shell(
-    command: str, cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None
-) -> int:
+def run_command_with_streaming_shell(command: str, cwd: Optional[str] = None, env: Optional[Dict[str, str]] = None) -> int:
     """
     Run a shell command with real-time output streaming.
 
@@ -219,11 +215,7 @@ def extract_commands_from_shell_string(command_str: str) -> typing.Set[str]:
                         if (
                             i + len(op) >= len(cmd_str)
                             or cmd_str[i + len(op)] in " \t\n"
-                            or any(
-                                cmd_str[i + len(op) : i + len(op) + len(other_op)]
-                                == other_op
-                                for other_op in shell_operators
-                            )
+                            or any(cmd_str[i + len(op) : i + len(op) + len(other_op)] == other_op for other_op in shell_operators)
                         ):
                             operator_found = op
                             break
@@ -263,18 +255,14 @@ def extract_commands_from_shell_string(command_str: str) -> typing.Set[str]:
             if words:
                 command_name = words[0]
                 # Skip relative paths and add valid command names
-                if not command_name.startswith("./") and not command_name.startswith(
-                    "../"
-                ):
+                if not command_name.startswith("./") and not command_name.startswith("../"):
                     commands.add(command_name)
         except ValueError:
             # If shlex fails, fall back to simple splitting
             words = part.split()
             if words:
                 command_name = words[0].strip("\"'")  # Remove surrounding quotes
-                if not command_name.startswith("./") and not command_name.startswith(
-                    "../"
-                ):
+                if not command_name.startswith("./") and not command_name.startswith("../"):
                     commands.add(command_name)
 
     return commands
@@ -438,9 +426,7 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
         if var_type == "args":
             # For args type, calculate how many arguments it should consume
             # remaining_vars = len(parsed_variables) - i - 1
-            remaining_non_args = sum(
-                1 for _, vt, _ in parsed_variables[i + 1 :] if vt != "args"
-            )
+            remaining_non_args = sum(1 for _, vt, _ in parsed_variables[i + 1 :] if vt != "args")
 
             # Args variable gets all remaining arguments except what's needed for subsequent non-args vars
             available_args = len(input_args) - arg_index
@@ -490,16 +476,12 @@ def parse_command_with_extras(command_template: str, extra_input: str = "") -> s
     return processed_command
 
 
-def parse_command_and_extra(
-    command_str: str, extra: Optional[str] = None, needs_shell: bool = False
-):
+def parse_command_and_extra(command_str: str, extra: Optional[str] = None, needs_shell: bool = False):
     """Parse command with ${variable} placeholder support for multiple variables"""
 
     if "${" in command_str:
         try:
-            processed_command_str = parse_command_with_extras(
-                command_str, str(extra) if extra else ""
-            )
+            processed_command_str = parse_command_with_extras(command_str, str(extra) if extra else "")
         except typer.Exit:
             raise
 
@@ -509,13 +491,9 @@ def parse_command_and_extra(
         else:
             try:
                 full_command = shlex.split(processed_command_str)
-                command_display = (
-                    processed_command_str  # Keep processed string for display
-                )
+                command_display = processed_command_str  # Keep processed string for display
             except ValueError as e:
-                typer.secho(
-                    f"✗ Error parsing processed command: {e}", fg=typer.colors.RED
-                )
+                typer.secho(f"✗ Error parsing processed command: {e}", fg=typer.colors.RED)
                 raise typer.Exit(code=1)
     else:
         # No variables - handle as regular command with extra args
@@ -524,9 +502,7 @@ def parse_command_and_extra(
             command_display = full_command
         else:
             try:
-                command = shlex.split(command_str) + (
-                    shlex.split(extra) if extra else []
-                )
+                command = shlex.split(command_str) + (shlex.split(extra) if extra else [])
                 full_command = command
                 command_display = " ".join(command)
 

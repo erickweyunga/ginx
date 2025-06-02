@@ -57,7 +57,7 @@ def execute_script_logic(
         typer.secho("Execution plan:", fg=typer.colors.BLUE, bold=True)
         for i, script in enumerate(execution_order, 1):
             is_target = script == script_name
-            marker = "🎯" if is_target else "📋"
+            marker = "▶" if is_target else "○"
             style = typer.colors.GREEN if is_target else typer.colors.CYAN
             description = scripts[script].get("description", "No description")
             typer.secho(f"  {i}. {marker} {script} - {description}", fg=style)
@@ -84,9 +84,7 @@ def execute_script_logic(
         )
 
         try:
-            _execute_single_script(
-                current_script, current_config, current_extra, streaming, verbose
-            )
+            _execute_single_script(current_script, current_config, current_extra, streaming, verbose)
         except typer.Exit as e:
             typer.secho(
                 f"\n✗ Dependency '{current_script}' exited. Stopping execution.",
@@ -96,7 +94,7 @@ def execute_script_logic(
 
     total_duration = time.time() - total_start_time
     typer.secho(
-        f"\n🎉 All scripts completed successfully in {format_duration(total_duration)}",
+        f"\n✓ All scripts completed successfully in {format_duration(total_duration)}",
         fg=typer.colors.GREEN,
         bold=True,
     )
@@ -147,9 +145,7 @@ def _execute_single_script(
                 break
 
     # Parse command and add extra arguments
-    full_command, command_display = parse_command_and_extra(
-        command_str, extra, needs_shell=needs_shell
-    )
+    full_command, command_display = parse_command_and_extra(command_str, extra, needs_shell=needs_shell)
 
     if verbose:
         typer.secho(f"Command: {command_display}", fg=typer.colors.CYAN)
@@ -185,21 +181,13 @@ def _execute_command(
             # Use streaming output
             if needs_shell:
                 exit_code = run_command_with_streaming_shell(
-                    (
-                        str(full_command)
-                        if isinstance(full_command, list)
-                        else full_command
-                    ),
+                    (str(full_command) if isinstance(full_command, list) else full_command),
                     cwd=script.get("cwd"),
                     env=script.get("env"),
                 )
             else:
                 exit_code = run_command_with_streaming(
-                    (
-                        full_command
-                        if isinstance(full_command, list)
-                        else shlex.split(full_command)
-                    ),
+                    (full_command if isinstance(full_command, list) else shlex.split(full_command)),
                     cwd=script.get("cwd"),
                     env=script.get("env"),
                 )
@@ -211,9 +199,7 @@ def _execute_command(
                     fg=typer.colors.GREEN,
                 )
             else:
-                typer.secho(
-                    f"\n✗ Script exited with exit code {exit_code}", fg=typer.colors.RED
-                )
+                typer.secho(f"\n✗ Script exited with exit code {exit_code}", fg=typer.colors.RED)
                 raise typer.Exit(code=exit_code)
         else:
             # Capture output

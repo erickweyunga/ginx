@@ -74,21 +74,9 @@ def parse_requirements_file(file_path: str) -> List[str]:
                 # Skip comments and empty lines
                 if line and not line.startswith("#") and not line.startswith("-"):
                     # Handle package names with version specifiers
-                    package_name = (
-                        line.split("==")[0]
-                        .split(">=")[0]
-                        .split("<=")[0]
-                        .split("~=")[0]
-                        .split(">")[0]
-                        .split("<")[0]
-                        .strip()
-                    )
+                    package_name = line.split("==")[0].split(">=")[0].split("<=")[0].split("~=")[0].split(">")[0].split("<")[0].strip()
                     if package_name:
-                        packages.append(
-                            line
-                        )  # Keep full specification for installation
+                        packages.append(line)  # Keep full specification for installation
     except Exception as e:
-        typer.secho(
-            f"Warning: Could not parse {file_path}: {e}", fg=typer.colors.YELLOW
-        )
+        typer.secho(f"Warning: Could not parse {file_path}: {e}", fg=typer.colors.YELLOW)
     return packages

@@ -24,9 +24,7 @@ def is_script_name_reserved(script_name: str) -> bool:
     return script_name in RESERVED_COMMANDS
 
 
-def load_scripts(
-    config: Optional[Dict[str, Any]] = None, show_warnings: bool = True
-) -> Dict[str, Dict[str, Any]]:
+def load_scripts(config: Optional[Dict[str, Any]] = None, show_warnings: bool = True) -> Dict[str, Dict[str, Any]]:
     """
     Load and validate script configurations, excluding reserved names.
 
@@ -131,9 +129,7 @@ def validate_dependencies(scripts: Dict[str, Dict[str, Any]]) -> List[str]:
         for dep in depends:
             # Check if dependency exists
             if dep not in scripts:
-                errors.append(
-                    f"Script '{script_name}' depends on non-existent script '{dep}'"
-                )
+                errors.append(f"Script '{script_name}' depends on non-existent script '{dep}'")
 
             # Check for self-dependency
             if dep == script_name:
@@ -159,9 +155,7 @@ def detect_dependency_cycles(scripts: Dict[str, Dict[str, Any]]) -> List[List[st
         List of dependency cycles (each cycle is a list of script names)
     """
 
-    def dfs(
-        node: str, path: List[str], visited: Set[str], rec_stack: Set[str]
-    ) -> List[List[str]]:
+    def dfs(node: str, path: List[str], visited: Set[str], rec_stack: Set[str]) -> List[List[str]]:
         if node in rec_stack:
             cycle_start = path.index(node)
             return [path[cycle_start:]]
@@ -192,9 +186,7 @@ def detect_dependency_cycles(scripts: Dict[str, Dict[str, Any]]) -> List[List[st
     return all_cycles
 
 
-def resolve_execution_order(
-    scripts: Dict[str, Dict[str, Any]], target_script: str
-) -> List[str]:
+def resolve_execution_order(scripts: Dict[str, Dict[str, Any]], target_script: str) -> List[str]:
     """
     Resolve execution order for a script and its dependencies using topological sort.
 

@@ -16,9 +16,7 @@ def run_script_command(
         "--stream/--no-stream",
         help="Stream output in real-time (default: enabled)",
     ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", "-n", help="Show what would be executed without running"
-    ),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Show what would be executed without running"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show verbose output"),
 ) -> None:
     """

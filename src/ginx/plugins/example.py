@@ -46,9 +46,7 @@ class ExamplePlugin(GinxPlugin):
         # This could be used to modify commands, add logging, etc.
         return command
 
-    def post_execution_hook(
-        self, script_name: str, exit_code: int, duration: float
-    ) -> None:
+    def post_execution_hook(self, script_name: str, exit_code: int, duration: float) -> None:
         """Example post-execution hook."""
         # This could be used for logging, notifications, etc.
         pass

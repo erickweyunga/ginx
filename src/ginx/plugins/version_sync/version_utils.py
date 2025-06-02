@@ -94,9 +94,7 @@ def normalize_package_name(name: str) -> str:
     return name.lower().replace("_", "-")
 
 
-def format_version_comparison(
-    package: str, current: str, latest: str, status: str
-) -> str:
+def format_version_comparison(package: str, current: str, latest: str, status: str) -> str:
     """
     Format version comparison for display.
 

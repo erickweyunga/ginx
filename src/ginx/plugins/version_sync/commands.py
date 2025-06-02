@@ -22,9 +22,7 @@ from .version_utils import compare_versions
 class CheckUpdatesCommand:
     """Command for checking package updates from PyPI."""
 
-    def execute(
-        self, requirements_file: str, show_all: bool, json_output: bool, timeout: int
-    ) -> None:
+    def execute(self, requirements_file: str, show_all: bool, json_output: bool, timeout: int) -> None:
         """Execute the check-updates command."""
         # Determine which packages to check
         if requirements_file:
@@ -51,9 +49,7 @@ class CheckUpdatesCommand:
         else:
             self._display_results(results, show_all)
 
-    def _check_packages(
-        self, packages: Dict[str, str], timeout: int, json_output: bool
-    ) -> List[Dict[str, Any]]:
+    def _check_packages(self, packages: Dict[str, str], timeout: int, json_output: bool) -> List[Dict[str, Any]]:
         """Check packages against PyPI and return results."""
         results: List[Dict[str, Any]] = []
         total_packages = len(packages)
@@ -66,9 +62,7 @@ class CheckUpdatesCommand:
 
         for i, (package_name, current_version) in enumerate(packages.items(), 1):
             if not json_output:
-                typer.echo(
-                    f"Checking {package_name} ({i}/{total_packages})...", nl=False
-                )
+                typer.echo(f"Checking {package_name} ({i}/{total_packages})...", nl=False)
 
             pypi_info = get_pypi_package_info(package_name, timeout)
 
@@ -125,9 +119,7 @@ class CheckUpdatesCommand:
             typer.echo()
             typer.secho("Outdated packages:", fg=typer.colors.YELLOW, bold=True)
             for result in outdated:
-                typer.echo(
-                    f"  {result['package']}: {result['current']} → {result['latest']}"
-                )
+                typer.echo(f"  {result['package']}: {result['current']} → {result['latest']}")
 
             typer.echo()
             typer.secho("Update commands:", fg=typer.colors.CYAN)
@@ -138,17 +130,13 @@ class CheckUpdatesCommand:
             if len(outdated_specs) <= 5:
                 typer.echo(f"  pip install --upgrade {' '.join(outdated_specs)}")
             else:
-                typer.echo(
-                    f"  pip install --upgrade {' '.join(outdated_specs[:3])} ..."
-                )
+                typer.echo(f"  pip install --upgrade {' '.join(outdated_specs[:3])} ...")
 
 
 class SyncVersionsCommand:
     """Command for syncing package versions."""
 
-    def execute(
-        self, target: str, requirements_file: str, dry_run: bool, yes: bool
-    ) -> None:
+    def execute(self, target: str, requirements_file: str, dry_run: bool, yes: bool) -> None:
         """Command for syncing package versions."""
 
         # Get current installed packages
@@ -158,9 +146,7 @@ class SyncVersionsCommand:
             raise typer.Exit(code=1)
 
         # Determine target versions based on sync target
-        target_packages = self._determine_target_versions(
-            target, requirements_file, current_packages
-        )
+        target_packages = self._determine_target_versions(target, requirements_file, current_packages)
 
         if not target_packages:
             typer.secho("No target packages to sync to.", fg=typer.colors.YELLOW)
@@ -170,18 +156,14 @@ class SyncVersionsCommand:
         updates_needed = self._find_updates_needed(current_packages, target_packages)
 
         if not updates_needed:
-            typer.secho(
-                "✓ All packages are already at target versions.", fg=typer.colors.GREEN
-            )
+            typer.secho("✓ All packages are already at target versions.", fg=typer.colors.GREEN)
             return
 
         # Display what will be updated
         self._display_planned_updates(updates_needed, dry_run)
 
         if dry_run:
-            typer.secho(
-                "Dry run complete. No packages were updated.", fg=typer.colors.BLUE
-            )
+            typer.secho("Dry run complete. No packages were updated.", fg=typer.colors.BLUE)
             return
 
         # Confirm with user unless --yes flag is used
@@ -192,22 +174,14 @@ class SyncVersionsCommand:
         # Execute the updates
         self._execute_updates(updates_needed)
 
-    def _determine_target_versions(
-        self, target: str, requirements_file: str, current_packages: Dict[str, str]
-    ) -> Dict[str, str]:
+    def _determine_target_versions(self, target: str, requirements_file: str, current_packages: Dict[str, str]) -> Dict[str, str]:
         """Determine target versions based on sync target."""
 
         if target == "latest":
             return self._get_latest_versions(current_packages)
         elif target == "requirements" or requirements_file:
-            return self._get_requirements_versions(
-                requirements_file or "requirements.txt"
-            )
-        elif (
-            target.startswith(">=")
-            or target.startswith("==")
-            or target.startswith("~=")
-        ):
+            return self._get_requirements_versions(requirements_file or "requirements.txt")
+        elif target.startswith(">=") or target.startswith("==") or target.startswith("~="):
             # Handle version constraint targets like ">=2.0.0"
             return self._apply_version_constraint(current_packages, target)
         elif Path(target).exists():
@@ -250,23 +224,15 @@ class SyncVersionsCommand:
     def _get_requirements_versions(self, requirements_file: str) -> Dict[str, str]:
         """Get versions from requirements file."""
         if not Path(requirements_file).exists():
-            typer.secho(
-                f"Requirements file not found: {requirements_file}", fg=typer.colors.RED
-            )
+            typer.secho(f"Requirements file not found: {requirements_file}", fg=typer.colors.RED)
             raise typer.Exit(code=1)
 
-        typer.secho(
-            f"Reading target versions from {requirements_file}...", fg=typer.colors.BLUE
-        )
+        typer.secho(f"Reading target versions from {requirements_file}...", fg=typer.colors.BLUE)
         return get_packages_from_requirements(requirements_file)
 
-    def _apply_version_constraint(
-        self, current_packages: Dict[str, str], constraint: str
-    ) -> Dict[str, str]:
+    def _apply_version_constraint(self, current_packages: Dict[str, str], constraint: str) -> Dict[str, str]:
         """Apply a version constraint to all packages."""
-        typer.secho(
-            f"Applying constraint {constraint} to all packages...", fg=typer.colors.BLUE
-        )
+        typer.secho(f"Applying constraint {constraint} to all packages...", fg=typer.colors.BLUE)
 
         # For now, this is a simplified implementation
         # In practice, you'd want to use packaging.specifiers for proper constraint handling
@@ -288,9 +254,7 @@ class SyncVersionsCommand:
 
         return target_packages
 
-    def _find_updates_needed(
-        self, current_packages: Dict[str, str], target_packages: Dict[str, str]
-    ) -> List[Dict[str, str]]:
+    def _find_updates_needed(self, current_packages: Dict[str, str], target_packages: Dict[str, str]) -> List[Dict[str, str]]:
         """Find packages that need updating."""
         updates_needed: List[Dict[str, Any]] = []
 
@@ -311,15 +275,11 @@ class SyncVersionsCommand:
 
         return updates_needed
 
-    def _display_planned_updates(
-        self, updates_needed: List[Dict[str, str]], dry_run: bool
-    ) -> None:
+    def _display_planned_updates(self, updates_needed: List[Dict[str, str]], dry_run: bool) -> None:
         """Display what packages will be updated."""
         typer.echo()
         action = "Would update" if dry_run else "Will update"
-        typer.secho(
-            f"{action} {len(updates_needed)} packages:", fg=typer.colors.BLUE, bold=True
-        )
+        typer.secho(f"{action} {len(updates_needed)} packages:", fg=typer.colors.BLUE, bold=True)
 
         for update in updates_needed:
             package = update["package"]
@@ -353,10 +313,7 @@ class SyncVersionsCommand:
 
         # Group updates into batches to avoid command line length limits
         batch_size = 10
-        batches = [
-            updates_needed[i : i + batch_size]
-            for i in range(0, len(updates_needed), batch_size)
-        ]
+        batches = [updates_needed[i : i + batch_size] for i in range(0, len(updates_needed), batch_size)]
 
         success_count = 0
         failed_packages: List[str] = []
@@ -366,16 +323,12 @@ class SyncVersionsCommand:
                 typer.echo(f"Batch {batch_num}/{len(batches)}:")
 
             # Build pip install command
-            package_specs = [
-                f"{update['package']}=={update['target']}" for update in batch
-            ]
+            package_specs = [f"{update['package']}=={update['target']}" for update in batch]
             cmd = [sys.executable, "-m", "pip", "install"] + package_specs
 
             try:
                 # Execute pip install
-                result = subprocess.run(
-                    cmd, check=False, capture_output=True, text=True
-                )
+                result = subprocess.run(cmd, check=False, capture_output=True, text=True)
 
                 if result.returncode == 0:
                     for update in batch:
@@ -407,16 +360,12 @@ class SyncVersionsCommand:
         typer.secho(f"  ✓ Successfully updated: {success_count}", fg=typer.colors.GREEN)
 
         if failed_packages:
-            typer.secho(
-                f"  ✗ Failed to update: {len(failed_packages)}", fg=typer.colors.RED
-            )
+            typer.secho(f"  ✗ Failed to update: {len(failed_packages)}", fg=typer.colors.RED)
             typer.echo("Failed packages:")
             for package in failed_packages:
                 typer.echo(f"    - {package}")
             typer.echo()
-            typer.echo(
-                "You may need to update these packages manually or resolve conflicts."
-            )
+            typer.echo("You may need to update these packages manually or resolve conflicts.")
 
     def _install_single_package(self, update: Dict[str, str]) -> bool:
         """Install a single package and return success status."""
@@ -435,14 +384,10 @@ class SyncVersionsCommand:
                 )
                 return True
             else:
-                typer.secho(
-                    f"  ✗ {update['package']}: failed to update", fg=typer.colors.RED
-                )
+                typer.secho(f"  ✗ {update['package']}: failed to update", fg=typer.colors.RED)
                 return False
         except Exception:
-            typer.secho(
-                f"  ✗ {update['package']}: error during update", fg=typer.colors.RED
-            )
+            typer.secho(f"  ✗ {update['package']}: error during update", fg=typer.colors.RED)
             return False
 
 

@@ -44,9 +44,7 @@ class GinxPlugin(ABC):
         """Add custom commands to the CLI app."""
         pass
 
-    def process_script(
-        self, script_name: str, script_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def process_script(self, script_name: str, script_config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Process a script configuration before execution.
 
@@ -72,9 +70,7 @@ class GinxPlugin(ABC):
         """
         return command
 
-    def post_execution_hook(
-        self, script_name: str, exit_code: int, duration: float
-    ) -> None:
+    def post_execution_hook(self, script_name: str, exit_code: int, duration: float) -> None:
         """
         Hook called after script execution.
 
@@ -121,9 +117,7 @@ class PluginManager:
 
         # System plugins directory
         if sys.platform.startswith("win"):
-            dirs.append(
-                os.path.join(os.environ.get("PROGRAMDATA", ""), "ginx", "plugins")
-            )
+            dirs.append(os.path.join(os.environ.get("PROGRAMDATA", ""), "ginx", "plugins"))
         else:
             dirs.append("/usr/local/share/ginx/plugins")
             dirs.append("/opt/ginx/plugins")
@@ -165,11 +159,7 @@ class PluginManager:
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
 
-            if (
-                isinstance(attr, type)
-                and issubclass(attr, GinxPlugin)
-                and attr != GinxPlugin
-            ):
+            if isinstance(attr, type) and issubclass(attr, GinxPlugin) and attr != GinxPlugin:
 
                 try:
                     plugin_instance = attr()
@@ -218,9 +208,7 @@ class PluginManager:
                     fg=typer.colors.YELLOW,
                 )
 
-    def process_script(
-        self, script_name: str, script_config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def process_script(self, script_name: str, script_config: Dict[str, Any]) -> Dict[str, Any]:
         """Process script configuration through all plugins."""
         for plugin in self._plugins.values():
             try:
@@ -233,9 +221,7 @@ class PluginManager:
 
         return script_config
 
-    def run_pre_execution_hooks(
-        self, script_name: str, command: List[str]
-    ) -> List[str]:
+    def run_pre_execution_hooks(self, script_name: str, command: List[str]) -> List[str]:
         """Run pre-execution hooks from all plugins."""
         for plugin in self._plugins.values():
             try:
@@ -248,9 +234,7 @@ class PluginManager:
 
         return command
 
-    def run_post_execution_hooks(
-        self, script_name: str, exit_code: int, duration: float
-    ) -> None:
+    def run_post_execution_hooks(self, script_name: str, exit_code: int, duration: float) -> None:
         """Run post-execution hooks from all plugins."""
         for plugin in self._plugins.values():
             try:
@@ -290,21 +274,13 @@ def _discover_builtin_plugins() -> Dict[str, Any]:
     current_dir = Path(__file__).parent
 
     for item in current_dir.iterdir():
-        if (
-            item.is_dir()
-            and not item.name.startswith("_")
-            and item.name != "__pycache__"
-        ):
+        if item.is_dir() and not item.name.startswith("_") and item.name != "__pycache__":
             try:
                 module = importlib.import_module(f".{item.name}", package=__name__)
 
                 for attr_name in dir(module):
                     attr = getattr(module, attr_name)
-                    if (
-                        isinstance(attr, type)
-                        and issubclass(attr, GinxPlugin)
-                        and attr != GinxPlugin
-                    ):
+                    if isinstance(attr, type) and issubclass(attr, GinxPlugin) and attr != GinxPlugin:
                         plugins[attr_name] = attr
 
             except ImportError:
