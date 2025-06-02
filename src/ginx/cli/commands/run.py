@@ -3,8 +3,9 @@ Run command implementation.
 """
 
 import typer
-from ginx.config import get_scripts
+
 from ginx.cli.execution import execute_script_logic
+from ginx.config import get_scripts
 
 
 def run_script_command(

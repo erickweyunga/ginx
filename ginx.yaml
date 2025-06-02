@@ -1,90 +1,345 @@
-# Ginx Project Management Configuration
-# Minimal setup for Ginx project
+# Ginx Project Configuration
+# Test suite and development commands with dependency chains
 
 scripts:
   # ===============================================
   # DEVELOPMENT SETUP
   # ===============================================
 
+  deps-install:
+    command: "pip install pytest pytest-cov pytest-mock pyyaml typer"
+    description: "Install testing dependencies"
+
   install:
     command: "pip install -e ."
     description: "Install Ginx in development mode"
+    depends: ["deps-install"]
 
-  setup-dev:
-    command: "pip install -e . && pip install -r requirements-dev.txt"
-    description: "Complete development setup"
+  setup:
+    command: "pip install -e . && pip install -r requirements.txt"
+    description: "Setup development environment with test dependencies"
+    depends: ["deps-install"]
+
+  clean:
+    command: "rm -rf build/ dist/ *.egg-info __pycache__/ .pytest_cache/ .coverage htmlcov/ .ginx/"
+    description: "Clean build artifacts, cache files, and test outputs"
 
   # ===============================================
-  # CODE QUALITY & FORMATTING
+  # CODE QUALITY & FORMATTING CHAIN
   # ===============================================
 
   format:
-    command: "black src/ && isort src/"
+    command: "black src/ tests/ && isort src/ tests/"
     description: "Format code with Black and isort"
+    depends: ["setup"]
+
+  format-check:
+    command: "black --check src/ tests/ && isort --check-only src/ tests/"
+    description: "Check code formatting without making changes"
+    depends: ["format"]
 
   lint:
-    command: "flake8 src/"
-    description: "Run flake8 linter"
+    command: "flake8 src/ tests/"
+    description: "Run flake8 linting"
+    depends: ["format"]
 
   typecheck:
     command: "mypy src/ --ignore-missing-imports"
     description: "Run MyPy type checking"
+    depends: ["format"]
+
+  quality:
+    command: "black --check src/ tests/ && isort --check-only src/ tests/ && flake8 src/ tests/ && mypy src/"
+    description: "Run all code quality checks"
+    depends: ["format-check", "lint", "typecheck"]
 
   # ===============================================
-  # BUILD & RELEASE
+  # TESTING CHAIN - ALL TESTS
   # ===============================================
 
-  clean:
-    command: "rm -rf build/ dist/ *.egg-info"
-    description: "Clean build artifacts"
+  test:
+    command: "pytest tests/ -v"
+    description: "Run all tests with verbose output"
+    depends: ["setup"]
 
-  build:
-    command: "ginx run clean && python -m pip install --upgrade build && python -m build"
-    description: "Build source and wheel"
+  test-quiet:
+    command: "pytest tests/ -q"
+    description: "Run all tests quietly"
+    depends: ["setup"]
 
-  publish:
-    command: "python -m pip install --upgrade twine && python -m twine upload --repository pypi dist/*"
-    description: "Upload to PyPI"
+  test-coverage:
+    command: "pytest tests/ -v --cov=ginx --cov-report=html --cov-report=term"
+    description: "Run tests with coverage reporting"
+    depends: ["test"]
 
-  release-patch:
-    command: "ginx run format && ginx run lint && ginx run typecheck && ginx run build && ginx run publish"
-    description: "Quick patch release"
+  test-coverage-xml:
+    command: "pytest tests/ --cov=ginx --cov-report=xml"
+    description: "Run tests with XML coverage report for CI"
+    depends: ["test"]
 
-  # ===============================================
-  # GIT WORKFLOW
-  # ===============================================
+  test-fast:
+    command: "pytest tests/ -x -v"
+    description: "Run tests and stop on first failure"
+    depends: ["lint"]
 
-  add:
-    command: "git add ."
-    description: "Stage all changes"
-
-  commit:
-    command: "git commit -m '${message:string}'"
-    description: "Commit with updates message"
-
-  push:
-    command: "git push -u origin main"
-    description: "Push to main"
-
-  tag:
-    command: "git tag -a '${version}' -m 'Release ${version}'"
-    description: "Create a new git tag for the release"
-
-  pull:
-    command: "git pull origin main"
-    description: "Pull latest changes"
-  
-  git-release:
-    command: "git push origin main --tags"
-    description: "Full release workflow"
+  test-watch:
+    command: "pytest-watch tests/ -- -v"
+    description: "Run tests in watch mode (requires pytest-watch)"
+    depends: ["setup"]
 
   # ===============================================
-  # MAINTENANCE
+  # TESTING CHAIN - SPECIFIC MODULES
   # ===============================================
 
-  upgrade-pip:
-    command: "python -m pip install --upgrade pip"
-    description: "Upgrade pip to latest version"
+  test-config:
+    command: "pytest tests/test_config/ -v"
+    description: "Run configuration tests only"
+    depends: ["setup"]
+
+  test-utils:
+    command: "pytest tests/test_utils/ -v"
+    description: "Run utility tests only"
+    depends: ["setup"]
+
+  test-cli:
+    command: "pytest tests/test_cli/ -v"
+    description: "Run CLI tests only"
+    depends: ["setup"]
+
+  test-discovery:
+    command: "pytest tests/test_config/test_discovery.py -v"
+    description: "Run config discovery tests"
+    depends: ["test-config"]
+
+  test-scripts:
+    command: "pytest tests/test_config/test_scripts.py -v"
+    description: "Run script configuration tests"
+    depends: ["test-config"]
+
+  test-variables:
+    command: "pytest tests/test_utils/test_variable_parsing.py -v"
+    description: "Run variable parsing tests"
+    depends: ["test-utils"]
+
+  test-parsing:
+    command: "pytest tests/test_utils/test_command_parsing.py -v"
+    description: "Run command parsing tests"
+    depends: ["test-utils"]
+
+  test-execution:
+    command: "pytest tests/test_cli/test_execution.py -v"
+    description: "Run script execution tests"
+    depends: ["test-cli"]
+
+  # ===============================================
+  # TESTING - SPECIFIC TEST FUNCTIONS
+  # ===============================================
+
+  test-class:
+    command: "pytest ${test_class:raw} -v"
+    description: "Run specific test class"
+    depends: ["setup"]
+
+  test-function:
+    command: "pytest ${test_function:raw} -v"
+    description: "Run specific test function"
+    depends: ["setup"]
+
+  test-keyword:
+    command: "pytest tests/ -k ${keyword:raw} -v"
+    description: "Run tests matching keyword"
+    depends: ["setup"]
+
+  test-marker:
+    command: "pytest tests/ -m ${marker:raw} -v"
+    description: "Run tests with specific marker"
+    depends: ["setup"]
+
+  # ===============================================
+  # TESTING - DEBUG & ANALYSIS
+  # ===============================================
+
+  test-debug:
+    command: "pytest ${test_path:raw} -v -s --pdb"
+    description: "Run specific test with debugger on failure"
+    depends: ["setup"]
+
+  test-profile:
+    command: "pytest tests/ --profile-svg"
+    description: "Profile test execution (requires pytest-profiling)"
+    depends: ["test"]
+
+  test-benchmark:
+    command: "pytest tests/ --benchmark-only"
+    description: "Run benchmark tests only (requires pytest-benchmark)"
+    depends: ["setup"]
+
+  test-parallel:
+    command: "pytest tests/ -n ${workers:number}"
+    description: "Run tests in parallel (requires pytest-xdist)"
+    depends: ["setup"]
+
+  # ===============================================
+  # COVERAGE ANALYSIS CHAIN
+  # ===============================================
+
+  coverage-report:
+    command: "coverage report --show-missing"
+    description: "Show coverage report in terminal"
+    depends: ["test-coverage"]
+
+  coverage-html:
+    command: "coverage html && python -m http.server 8000 --directory htmlcov"
+    description: "Generate HTML coverage report and serve it"
+    depends: ["test-coverage"]
+
+  coverage-clean:
+    command: "rm -rf htmlcov/ .coverage coverage.xml"
+    description: "Clean coverage reports"
+
+  coverage-combine:
+    command: "coverage combine && coverage report"
+    description: "Combine coverage data and show report"
+    depends: ["test-coverage"]
+
+  serve-coverage:
+    command: "python -m http.server ${port:number} --directory htmlcov"
+    description: "Serve coverage report on specified port"
+    depends: ["coverage-html"]
+
+  # ===============================================
+  # TEST DATA & FIXTURES
+  # ===============================================
+
+  test-fixtures-create:
+    command: 'python -c "import tests.fixtures.test_data; print(''Test fixtures available'')"'
+    description: "Verify test fixtures are available"
+    depends: ["setup"]
+
+  test-temp-clean:
+    command: "find /tmp -name 'tmp*ginx*' -type d -exec rm -rf {} + 2>/dev/null || true"
+    description: "Clean temporary test directories"
+
+  # ===============================================
+  # CI/CD COMMAND CHAIN
+  # ===============================================
+
+  ci-quality:
+    command: "black --check src/ tests/ && isort --check-only src/ tests/ && flake8 src/ tests/"
+    description: "Run quality checks for CI/CD"
+    depends: ["quality"]
+
+  ci-test:
+    command: "pytest tests/ --cov=ginx --cov-report=xml --cov-fail-under=30 --junitxml=test-results.xml"
+    description: "Run tests for CI/CD with coverage and XML reports"
+    depends: ["test"]
+
+  ci-full:
+    command: "echo 'CI pipeline completed successfully'"
+    description: "Full CI pipeline: format check + tests with coverage"
+    depends: ["ci-quality", "ci-test"]
+
+  # ===============================================
+  # TEST DEVELOPMENT CHAIN
+  # ===============================================
+
+  test-new:
+    command: "touch tests/test_${module:raw}/test_${name:raw}.py"
+    description: "Create new test file"
+    depends: ["setup"]
+
+  # ===============================================
+  # PERFORMANCE & LOAD TESTING
+  # ===============================================
+
+  test-stress:
+    command: "pytest tests/ --count=${count:number}"
+    description: "Run tests multiple times for stress testing (requires pytest-repeat)"
+    depends: ["test"]
+
+  test-timeout:
+    command: "pytest tests/ --timeout=${seconds:number}"
+    description: "Run tests with timeout (requires pytest-timeout)"
+    depends: ["setup"]
+
+  test-memory:
+    command: "pytest tests/ --memray"
+    description: "Run tests with memory profiling (requires pytest-memray)"
+    depends: ["test"]
+
+  # ===============================================
+  # GIT & VERSION CONTROL
+  # ===============================================
+
+  commit-tests:
+    command: "git add tests/ && git commit -m ${message:string}"
+    description: "Commit test changes"
+    depends: ["test-fast"]
+
+  push-tests:
+    command: "git push origin ${branch:raw}"
+    description: "Push test changes to branch"
+    depends: ["commit-tests"]
+
+  test-changed:
+    command: "pytest --testmon"
+    description: "Run only tests affected by changes (requires pytest-testmon)"
+    depends: ["setup"]
+
+  # ===============================================
+  # REPORTING & ANALYSIS CHAIN
+  # ===============================================
+
+  test-report:
+    command: "pytest tests/ --html=test-report.html --self-contained-html"
+    description: "Generate HTML test report (requires pytest-html)"
+    depends: ["test"]
+
+  test-json:
+    command: "pytest tests/ --json-report --json-report-file=test-report.json"
+    description: "Generate JSON test report (requires pytest-json-report)"
+    depends: ["test"]
+
+  # ===============================================
+  # UTILITY COMMANDS
+  # ===============================================
+
+  test-count:
+    command: "find tests/ -name '*.py' -exec grep -l 'def test_' {} \\; | wc -l"
+    description: "Count number of test files"
+
+  test-list:
+    command: "pytest --collect-only -q"
+    description: "List all available tests"
+    depends: ["setup"]
+
+  test-help:
+    command: "pytest --help"
+    description: "Show pytest help"
+
+  # ===============================================
+  # COMPLETE WORKFLOW CHAINS
+  # ===============================================
+
+  dev-ready:
+    command: "echo 'Development environment ready for coding!'"
+    description: "Complete development setup and validation"
+    depends: ["setup", "quality", "test"]
+
+  pre-commit:
+    command: "echo 'Pre-commit checks completed successfully'"
+    description: "Run all pre-commit checks (format, lint, test)"
+    depends: ["quality", "test-fast"]
+
+  release-ready:
+    command: "echo 'Release validation completed - ready for deployment'"
+    description: "Complete release validation pipeline"
+    depends: ["ci-full", "coverage-report", "test-report"]
+
+  full-validation:
+    command: "echo 'Full project validation completed successfully'"
+    description: "Complete project validation (all tests, coverage, quality)"
+    depends: ["quality", "test-coverage", "test-report", "coverage-html"]
 
 # ===============================================
 # PLUGIN CONFIGURATION

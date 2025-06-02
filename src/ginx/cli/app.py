@@ -3,6 +3,7 @@ Main Ginx - Typer app setup and initialization.
 """
 
 import typer
+
 from ginx.plugins import get_plugin_manager
 
 # Create the main app

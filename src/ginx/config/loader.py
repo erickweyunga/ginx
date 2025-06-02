@@ -4,13 +4,14 @@ Core YAML configuration loading.
 
 from pathlib import Path
 from typing import Any, Dict, Optional
-import yaml
+
 import typer
+import yaml
 
 from .discovery import find_config_file
 
 
-class Configconfigror(Exception):
+class ConfigLoadError(Exception):
     """Exception raised when configuration loading fails."""
 
     pass
@@ -27,16 +28,16 @@ def load_raw_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
         Raw configuration dictionary
 
     Raises:
-        Configconfigror: If configuration cannot be loaded
+        ConfigLoadError: If configuration cannot be loaded
     """
     if config_path is None:
         config_path = find_config_file()
 
     if not config_path:
-        raise Configconfigror("No configuration file found")
+        raise ConfigLoadError("No configuration file found")
 
     if not config_path.exists():
-        raise Configconfigror(f"Configuration file not found: {config_path}")
+        raise ConfigLoadError(f"Configuration file not found: {config_path}")
 
     try:
         with open(config_path, "r", encoding="utf-8") as f:
@@ -45,9 +46,9 @@ def load_raw_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
         return config
 
     except yaml.YAMLError as e:
-        raise Configconfigror(f"Error parsing YAML file: {e}")
+        raise ConfigLoadError(f"Error parsing YAML file: {e}")
     except Exception as e:
-        raise Configconfigror(f"Error loading configuration: {e}")
+        raise ConfigLoadError(f"Error loading configuration: {e}")
 
 
 def normalize_config(raw_config: Dict[str, Any]) -> Dict[str, Any]:
@@ -91,7 +92,7 @@ def load_config(
         raw_config = load_raw_config(config_path)
         return normalize_config(raw_config)
 
-    except Configconfigror as e:
+    except ConfigLoadError as e:
         if not silent:
             if "No configuration file found" in str(e):
                 from .discovery import DEFAULT_CONFIG_FILES

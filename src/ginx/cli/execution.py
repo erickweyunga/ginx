@@ -30,16 +30,10 @@ def execute_script_logic(
     verbose: bool,
 ) -> None:
     """
-    Core script execution logic with enhanced variable support.
-
-    Args:
-        script_name: Name of the script to execute
-        script_config: Script configuration dictionary
-        extra: Extra CLI arguments
-        streaming: Whether to stream output
-        dry_run: Whether to perform a dry run
-        verbose: Whether to show verbose output
+    Enhanced script execution with dependency support.
     """
+    from ginx.config.scripts import resolve_execution_order, validate_dependencies
+
     scripts = get_scripts()
     if script_name not in scripts:
         typer.secho(f"Script '{script_name}' not found.", fg=typer.colors.RED)
@@ -48,11 +42,79 @@ def execute_script_logic(
             typer.echo(f"  - {name}")
         raise typer.Exit(code=1)
 
-    script = scripts[script_name]
-    command_str = script["command"]
+    # Validate dependencies
+    dependency_errors = validate_dependencies(scripts)
+    if dependency_errors:
+        typer.secho("Dependency validation failed:", fg=typer.colors.RED)
+        for error in dependency_errors:
+            typer.secho(f"  ✗ {error}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    # Resolve execution order
+    execution_order = resolve_execution_order(scripts, script_name)
+
+    if verbose or len(execution_order) > 1:
+        typer.secho("Execution plan:", fg=typer.colors.BLUE, bold=True)
+        for i, script in enumerate(execution_order, 1):
+            is_target = script == script_name
+            marker = "🎯" if is_target else "📋"
+            style = typer.colors.GREEN if is_target else typer.colors.CYAN
+            description = scripts[script].get("description", "No description")
+            typer.secho(f"  {i}. {marker} {script} - {description}", fg=style)
+        typer.echo()
+
+    if dry_run:
+        typer.secho("Dry run - no scripts executed", fg=typer.colors.YELLOW)
+        return
+
+    # Execute scripts in dependency order
+    total_start_time = time.time()
+
+    for i, current_script in enumerate(execution_order):
+        is_target = current_script == script_name
+        current_config = scripts[current_script]
+
+        # Use provided extra args only for target script
+        current_extra = extra if is_target else ""
+
+        typer.secho(
+            f"\n[{i+1}/{len(execution_order)}] Running: {current_script}",
+            fg=typer.colors.BLUE,
+            bold=True,
+        )
+
+        try:
+            _execute_single_script(
+                current_script, current_config, current_extra, streaming, verbose
+            )
+        except typer.Exit as e:
+            typer.secho(
+                f"\n✗ Dependency '{current_script}' exited. Stopping execution.",
+                fg=typer.colors.RED,
+            )
+            raise e
+
+    total_duration = time.time() - total_start_time
+    typer.secho(
+        f"\n🎉 All scripts completed successfully in {format_duration(total_duration)}",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+
+
+def _execute_single_script(
+    script_name: str,
+    script_config: Dict[str, Any],
+    extra: str,
+    streaming: bool,
+    verbose: bool,
+) -> None:
+    """Execute a single script without dependency resolution."""
+
+    command_str = script_config["command"]
 
     # Expand environment variables
-    script_env = script.get("env", {})
+    script_env = script_config.get("env", {})
     command_str = expand_variables(command_str, script_env)
 
     # Validate command
@@ -90,31 +152,22 @@ def execute_script_logic(
     )
 
     if verbose:
-        typer.secho(f"Script: {script_name}", fg=typer.colors.BLUE)
-        typer.secho(
-            f"Description: {script.get('description', 'N/A')}", fg=typer.colors.BLUE
-        )
-        typer.secho(
-            f"Working directory: {script.get('cwd', 'current')}", fg=typer.colors.BLUE
-        )
-        typer.secho(
-            f"Shell mode: {'Yes' if needs_shell else 'No'}", fg=typer.colors.BLUE
-        )
+        typer.secho(f"Command: {command_display}", fg=typer.colors.CYAN)
 
-    typer.secho(f"Running: {command_display}", fg=typer.colors.CYAN)
+    start_time = time.time()
 
-    if dry_run:
-        typer.secho("Dry run - command not executed", fg=typer.colors.YELLOW)
-        return
-
-    _execute_command(
-        full_command=full_command,
-        needs_shell=needs_shell,
-        streaming=streaming,
-        script=script,
-        script_name=script_name,
-        start_time=time.time(),
-    )
+    try:
+        _execute_command(
+            full_command=full_command,
+            needs_shell=needs_shell,
+            streaming=streaming,
+            script=script_config,
+            script_name=script_name,
+            start_time=start_time,
+        )
+    except Exception:
+        # Re-raise to stop dependency chain
+        raise
 
 
 def _execute_command(
@@ -159,7 +212,7 @@ def _execute_command(
                 )
             else:
                 typer.secho(
-                    f"\n✗ Script failed with exit code {exit_code}", fg=typer.colors.RED
+                    f"\n✗ Script exited with exit code {exit_code}", fg=typer.colors.RED
                 )
                 raise typer.Exit(code=exit_code)
         else:

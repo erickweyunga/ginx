@@ -28,7 +28,6 @@ def find_config_file(
     if config_names is None:
         config_names = DEFAULT_CONFIG_FILES
 
-    # Check current directory and walk up the tree
     for directory in [start_dir] + list(start_dir.parents):
         for config_name in config_names:
             config_path = directory / config_name

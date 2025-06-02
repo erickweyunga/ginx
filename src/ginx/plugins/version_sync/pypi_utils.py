@@ -72,7 +72,9 @@ class PyPIClient:
         Returns:
             Releases information dict or None if failed
         """
-        package_info: Optional[Dict[str, Any]] = self.get_package_info(package_name, timeout)
+        package_info: Optional[Dict[str, Any]] = self.get_package_info(
+            package_name, timeout
+        )
         if package_info:
             return package_info.get("releases", {})
         return None

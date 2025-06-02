@@ -8,5 +8,6 @@ RESERVED_COMMANDS: Set[str] = {
     "init",
     "validate",
     "deps",
+    "graph",
     "debug-plugins",
 }

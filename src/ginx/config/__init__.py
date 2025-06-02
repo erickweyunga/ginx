@@ -6,30 +6,28 @@ including scripts, plugins, and global settings.
 """
 
 # Core loading functions
-from typing import Dict, Any
+from typing import Any, Dict
+
+from .discovery import DEFAULT_CONFIG_FILES, find_config_file
 from .loader import load_config, load_raw_config, save_config
-from .discovery import find_config_file, DEFAULT_CONFIG_FILES
+from .plugins import (
+    get_plugin_directories,
+    is_plugin_enabled,
+)
+from .plugins import load_plugin_config
+from .plugins import load_plugin_config as get_plugin_config
 
 # Specialized loaders
-from .scripts import (
-    load_scripts,
-    get_script_variables,
-    has_variables,
-)
-from .plugins import (
-    load_plugin_config,
-    is_plugin_enabled,
-    get_plugin_directories,
-)
+from .scripts import get_script_variables, has_variables
+from .scripts import load_scripts
+from .scripts import load_scripts as get_scripts
+from .scripts import resolve_execution_order
 from .settings import (
-    load_settings,
+    DEFAULT_SETTINGS,
     get_setting,
     is_dangerous_commands_enabled,
-    DEFAULT_SETTINGS,
 )
-
-from .scripts import load_scripts as get_scripts
-from .plugins import load_plugin_config as get_plugin_config
+from .settings import load_settings
 from .settings import load_settings as get_global_config
 
 
@@ -89,4 +87,6 @@ __all__ = [
     # Constants
     "DEFAULT_CONFIG_FILES",
     "DEFAULT_SETTINGS",
+    # Executable commands
+    "resolve_execution_order",
 ]

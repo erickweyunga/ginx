@@ -3,7 +3,9 @@ Init command implementation.
 """
 
 import os
+
 import typer
+
 from ginx.config import create_sample_config
 
 

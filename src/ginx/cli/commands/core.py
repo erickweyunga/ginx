@@ -3,11 +3,12 @@ Core built-in commands: version, list, validate, deps.
 """
 
 import typing
-from typing import List
+from typing import List, Optional
 
 import typer
 
-from ginx.config import get_scripts
+from ginx.config import get_scripts, resolve_execution_order
+from ginx.constants import COMMON_SHELL_RESERVED_COMMANDS
 from ginx.utils import (
     check_dependencies,
     extract_commands_from_shell_string,
@@ -15,7 +16,6 @@ from ginx.utils import (
     parse_requirements_file,
     validate_command,
 )
-from ginx.constants import COMMON_SHELL_RESERVED_COMMANDS
 
 
 def version_command() -> None:
@@ -153,6 +153,31 @@ def check_dependencies_command() -> None:
         typer.secho("Install missing dependencies")
         typer.secho(f"Use command: pip install {' '.join(missing_commands)}")
         typer.echo()
+
+
+def show_dependency_graph(
+    script_name: Optional[str] = typer.Argument(None, help="Script to analyze")
+) -> None:
+    """Show dependency graph for all scripts or a specific script."""
+    scripts = get_scripts()
+
+    if script_name:
+        if script_name not in scripts:
+            typer.secho(f"Script '{script_name}' not found.", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+
+        execution_order = resolve_execution_order(scripts, script_name)
+        typer.secho(
+            f"Dependency chain for '{script_name}':", fg=typer.colors.BLUE, bold=True
+        )
+        for i, script in enumerate(execution_order):
+            typer.echo(f"  {i+1}. {script}")
+    else:
+        typer.secho("All script dependencies:", fg=typer.colors.BLUE, bold=True)
+        for name, data in scripts.items():
+            depends = data.get("depends", [])
+            if depends:
+                typer.echo(f"  {name} → {', '.join(depends)}")
 
 
 def debug_plugins_command() -> None:

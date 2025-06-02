@@ -3,11 +3,12 @@ Dynamic script command registration.
 """
 
 from typing import Any, Dict
+
 import typer
 
 from ginx.cli.commands.registry import is_command_reserved
-from ginx.config import get_scripts
 from ginx.cli.execution import execute_script_logic
+from ginx.config import get_scripts
 
 
 def create_script_command(script_name: str, script_config: Dict[str, Any]):

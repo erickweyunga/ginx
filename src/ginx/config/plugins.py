@@ -3,6 +3,7 @@ Plugin configuration management.
 """
 
 from typing import Any, Dict, List, Optional, Union
+
 from .loader import load_config
 from .settings import get_setting
 

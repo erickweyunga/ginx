@@ -3,14 +3,12 @@ Global settings management.
 """
 
 from typing import Any, Dict, Optional
+
 from .loader import load_config
 
 # Default global settings
 DEFAULT_SETTINGS: Dict[str, Any] = {
     "dangerous_commands": True,
-    "auto_discover_plugins": True,
-    "script_timeout": 300,
-    "shell_detection": True,
 }
 
 

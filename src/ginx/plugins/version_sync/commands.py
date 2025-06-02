@@ -146,7 +146,9 @@ class CheckUpdatesCommand:
 class SyncVersionsCommand:
     """Command for syncing package versions."""
 
-    def execute(self, target: str, requirements_file: str, dry_run: bool, yes: bool) -> None:
+    def execute(
+        self, target: str, requirements_file: str, dry_run: bool, yes: bool
+    ) -> None:
         """Command for syncing package versions."""
 
         # Get current installed packages
